@@ -601,11 +601,11 @@ const struct timespec* delayperframe = (const struct timespec[]){{0,16666667L}};
 // Poly Line Array Player
 PolyLineArray player;
 
+PolyLine body, moncong, turret;
+
 // Draw player
 void initPlayer(){
 	initPolyLineArray(&player, 11);
-
-	PolyLine body, moncong, turret;
 
 	int x=xmiddle, y=ymiddle;
 
@@ -623,6 +623,7 @@ void initPlayer(){
 	addPolyline(&player, &turret);
 
 }
+
 
 /* Akan mulai mewarnai titik dari *x, *y sepanjang length ke satu arah sesuai mode yang diberikan
  * 1 = atas, 2 = kanan, 3 = bawah, 4 = kiri
@@ -642,6 +643,34 @@ void drawLaser(int* x, int* y, int mode, int length) {
 	}
 }
 
+// METODE HANDLER THREAD IO--------------------------------------------------------------------------------- //
+void *keylistener(void *null) {
+    while (1) {
+        char X = getKeyPress();
+        if (X == '\033') {
+        	getKeyPress();
+        	X = getKeyPress();
+
+        	if (X == 'D') { // Right arrow
+        		rotatePolylineArray(&player, player.arr[0].x[1], player.arr[0].y[1], -90);
+        	} else if (X == 'C') { // Left arrow
+        		rotatePolylineArray(&player, player.arr[0].x[1], player.arr[0].y[1], 90);
+        	} else if (X == 'B') { // Up arrow
+				movePolylineArray(&player, 0, 5);
+        	} else if (X == 'A') { // Down arrow
+				movePolylineArray(&player, 0, -5);
+        	}
+        } else if ((X == 'i') || (X == 'I')) { // Zoom in
+        	scalePolylineArray(&player, xmiddle, ymiddle, 1.1);
+        } else if ((X == 'o') || (X == 'O')) { // Zoom out
+        	scalePolylineArray(&player, xmiddle, ymiddle, 1/1.1);
+        } else if ((X == 'z') || (X == 'Z')) { // Shoot laser
+        	// Still in experiment
+        	drawLaser(&(player.arr[1].x[0]) + 2,&(player.arr[1].y[0]) + 2,4,100);
+        }
+        drawScreenBorder();
+    }
+}
 
 int main(int argc, char *argv[]) {
     initScreen();
@@ -658,17 +687,17 @@ int main(int argc, char *argv[]) {
     drawLaser(&x,&y,1,100);
     printf("%d,%d",x,y);
     
-    while (1){
-    	clearScreen();
-    	drawPolylineArrayOutline(&player);
-    	movePolylineArray(&player, 1, 1);
-    	rotatePolylineArray(&player, xmiddle - 15, ymiddle + 40, 1);
-    	nanosleep(delayperframe,NULL);
-    }
+
+    pthread_t listener;
+    pthread_create(&listener, NULL, keylistener, NULL);
+	pthread_join(listener, NULL);
+
+    
 
 
     floodFill(555,455, 0,255,0,0, 255,0,0,0);
-    
+
+	clearScreen();    
     terminate();
     return 0;
 }
