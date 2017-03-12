@@ -9,6 +9,7 @@
 #include <math.h>
 #include <termios.h>
 #include <pthread.h>
+#include <string.h>
 
 int fbfd = 0;                       // Filebuffer Filedescriptor
 struct fb_var_screeninfo vinfo;     // Struct Variable Screeninfo
@@ -64,7 +65,6 @@ char getKeyPress() {
             perror ("tcsetattr ~ICANON");
     return (buf);
 }
-
 
 // PROSEDUR RESET LAYAR DAN PEWARNAAN PIXEL----------------------------------------------------------------- //
 int plotPixelRGBA(int _x, int _y, int r, int g, int b, int a) {
@@ -144,6 +144,7 @@ void initScreen() {
      //borderRight = vinfo.yres - (borderLeft + 600);
 
 }
+
 void clearScreen() {
 
 	//Mewarnai latar belakang screen dengan warna putih
@@ -157,7 +158,6 @@ void clearScreen() {
 	drawScreenBorder();
 
 }
-
 
 // STRUKTUR DATA DAN METODE PENGGAMBARAN GARIS-------------------------------------------------------------- //
 typedef struct {
@@ -341,7 +341,6 @@ int drawLine(Line* l) {
 
 }
 
-
 // METODE PEWARNAAN UMUM------------------------------------------------------------------------------------ //
 void floodFill(int x,int y, int r,int g,int b,int a, int rb,int gb,int bb,int ab) {
 // rgba is the color of the fill, rbgbbbab is the color of the border
@@ -360,7 +359,6 @@ void floodFill(int x,int y, int r,int g,int b,int a, int rb,int gb,int bb,int ab
 	}
 
 }
-
 
 // STRUKTUR DATA DAN METODE PENGGAMBARAN POLYLINE----------------------------------------------------------- //
 typedef struct {
@@ -383,11 +381,13 @@ void initPolyline(PolyLine* p, int rx, int gx, int bx, int ax) {
 	(*p).PointCount = 0;
 	(*p).r = rx; (*p).g = gx; (*p).b = bx; (*p).a = ax;
 }
+
 void addEndPoint(PolyLine* p, int _x, int _y) {
 	(*p).x[(*p).PointCount] = _x;
 	(*p).y[(*p).PointCount] = _y;
 	(*p).PointCount++;
 }
+
 void setFirePoint(PolyLine* p, int x, int y) {
 	(*p).xp = x;
 	(*p).yp = y;
@@ -431,7 +431,6 @@ void drawScreenBorder() {
 
 }
 
-
 // METODE ANIMASI POLYLINE---------------------------------------------------------------------------------- //
 void deletePolyline(PolyLine* p) {
 
@@ -472,6 +471,7 @@ void movePolyline(PolyLine* p, int dx, int dy) {
 	}
 	drawPolylineOutline(p);
 }
+
 void rotatePolyline(PolyLine* p, int xr, int yr, double degrees) {
 
 	deletePolyline(p);
@@ -495,6 +495,7 @@ void rotatePolyline(PolyLine* p, int xr, int yr, double degrees) {
 
 	drawPolylineOutline(p);
 }
+
 void scalePolyline(PolyLine* p, int xa, int ya, float ratio) {
 
 	deletePolyline(p);
@@ -516,7 +517,6 @@ void scalePolyline(PolyLine* p, int xa, int ya, float ratio) {
 
 	drawPolylineOutline(p);
 }
-
 
 // PROSEDUR ARRAY OF POLYLINE------------------------------------------------------------------------------- //
 typedef struct {
@@ -559,24 +559,28 @@ void drawPolylineArrayOutline(PolyLineArray* parr) {
 		drawPolylineOutline(&((*parr).arr[i]));
 	}
 }
+
 void movePolylineArray(PolyLineArray* parr, int dx, int dy) {
 	int i;
 	for(i=0; i<(*parr).PolyCount;i++) {
 		movePolyline(&((*parr).arr[i]), dx, dy);
 	}
 }
+
 void scalePolylineArray(PolyLineArray* parr, int ax, int ay, float scale) {
 	int i;
 	for(i=0; i<(*parr).PolyCount;i++) {
 		scalePolyline(&((*parr).arr[i]), ax, ay, scale);
 	}
 }
+
 void colorPolylineArray(PolyLineArray* parr, int r, int g, int b, int a) {
 	int i;
 	for(i=0; i<(*parr).PolyCount;i++) {
 		fillPolyline(&((*parr).arr[i]), r,g,b,a);
 	}
 }
+
 void rotatePolylineArray(PolyLineArray* parr, int xr, int yr, double degrees) {
 	int i;
 	for(i=0; i<(*parr).PolyCount;i++) {
@@ -596,7 +600,6 @@ int rlaser=255, glaser=0, blaser=0, alaser=0;
 
 //Delay per frame, 16.666666667L berarti 30 fps
 const struct timespec* delayperframe = (const struct timespec[]){{0,16666667L}};
-
 
 // Poly Line Array Player
 PolyLineArray player;
@@ -623,7 +626,6 @@ void initPlayer(){
 	addPolyline(&player, &turret);
 
 }
-
 
 /* Akan mulai mewarnai titik dari *x, *y sepanjang length ke satu arah sesuai mode yang diberikan
  * 1 = atas, 2 = kanan, 3 = bawah, 4 = kiri
@@ -672,11 +674,69 @@ void *keylistener(void *null) {
     }
 }
 
+//Poly Line Stage
+void initStage(PolyLineArray* stage){
+	int r = 255;
+	int g = 255;
+	int b = 255;
+	int a = 0;
+	int firex, firey = 0;
+	int jmlBangunan = 1;
+	
+	initPolyLineArray(stage, 80);
+	
+	PolyLine p;
+
+    FILE* file = fopen("dataBangunan.txt", "r"); /* should check the result */
+    char line[500];
+	int pertama = 1;
+	initPolyline(&p, r, g, b, a); //polyline pertama
+	printf("init poly satu\n");
+    while (fgets(line, sizeof(line), file)) {
+        //Jika merupakan baris berisi jumlah point
+        if(strlen(line) <= 4 && (pertama != 1)){
+			printf("%s", line);
+			setFirePoint(&p, firex, firey);
+			addPolyline(stage, &p);
+			printf("added poly\n");
+			initPolyline(&p, r, g, b, a); //polyline selanjutnya
+			printf("init poly\n");
+		}
+		//Jika merupakan baris berisi x y 
+		else {
+			if (pertama == 1){
+				pertama = 0;
+			} else {
+				int x;
+				int y;
+				sscanf(line, "%d %d", &x, &y);
+				printf("%d ", x);
+				printf("%d\n", y);
+				addEndPoint(&p, x, y);
+				printf("added end point\n");
+			}
+		}
+	}
+    //elemen terakhir
+    setFirePoint(&p, firex, firey);
+    printf("set fire last\n");
+	addPolyline(stage, &p);
+	printf("add poly last\n");
+	printf("sebelum fclose\n");
+    fclose(file);
+    printf("end\n");
+}
+
+//MAIN PROGRAM
 int main(int argc, char *argv[]) {
+	PolyLineArray *parr;
     initScreen();
     clearScreen();
     initPlayer();
+    initStage(parr);
+    
 	drawPolylineArrayOutline(&player);
+	drawPolylineArrayOutline(parr);
 
     int x=500, y=500;
     drawLaser(&x,&y,1,100);
@@ -686,14 +746,10 @@ int main(int argc, char *argv[]) {
     x=550; y=450;
     drawLaser(&x,&y,1,100);
     printf("%d,%d",x,y);
-    
 
     pthread_t listener;
     pthread_create(&listener, NULL, keylistener, NULL);
 	pthread_join(listener, NULL);
-
-    
-
 
     floodFill(555,455, 0,255,0,0, 255,0,0,0);
 
