@@ -138,8 +138,8 @@ void initScreen() {
 		exit(0);
 	 }
 
-     xmiddle = 305;
-     ymiddle = 305;
+     xmiddle = vinfo.xres/2;
+     ymiddle = vinfo.yres/2;
      //borderDown = vinfo.xres - (borderUp + 600);
      //borderRight = vinfo.yres - (borderLeft + 600);
 
@@ -577,18 +577,52 @@ void colorPolylineArray(PolyLineArray* parr, int r, int g, int b, int a) {
 		fillPolyline(&((*parr).arr[i]), r,g,b,a);
 	}
 }
-
+void rotatePolylineArray(PolyLineArray* parr, int xr, int yr, double degrees) {
+	int i;
+	for(i=0; i<(*parr).PolyCount;i++) {
+		rotatePolyline(&((*parr).arr[i]), xr, yr, degrees);
+	}
+}
 
 //-----PERBATASAN API <-> KODE TUGAS UTS-----//-----PERBATASAN API <-> KODE TUGAS UTS-----//
 //-----PERBATASAN API <-> KODE TUGAS UTS-----//-----PERBATASAN API <-> KODE TUGAS UTS-----//
 //-----PERBATASAN API <-> KODE TUGAS UTS-----//-----PERBATASAN API <-> KODE TUGAS UTS-----//
-
 
 // Warna background layar
 int rground=0, gground=0, bground=0, aground=0;
 
 // Warna laser
 int rlaser=255, glaser=0, blaser=0, alaser=0;
+
+//Delay per frame, 16.666666667L berarti 30 fps
+const struct timespec* delayperframe = (const struct timespec[]){{0,16666667L}};
+
+
+// Poly Line Array Player
+PolyLineArray player;
+
+// Draw player
+void initPlayer(){
+	initPolyLineArray(&player, 11);
+
+	PolyLine body, moncong, turret;
+
+	int x=xmiddle, y=ymiddle;
+
+	initPolyline(&body, 255, 255, 255, 0);
+	boxPolyline(&body, xmiddle - 25, ymiddle - 40, xmiddle + 25, ymiddle + 40);
+
+	initPolyline(&moncong, 255, 255, 255, 0);
+	boxPolyline(&moncong, xmiddle - 5, ymiddle - 40, xmiddle + 5, ymiddle - 80);
+
+	initPolyline(&turret, 255, 255, 255, 0);
+	boxPolyline(&turret, xmiddle - 15, ymiddle - 40, xmiddle + 15, ymiddle);
+
+	addPolyline(&player, &body);
+	addPolyline(&player, &moncong);
+	addPolyline(&player, &turret);
+
+}
 
 /* Akan mulai mewarnai titik dari *x, *y sepanjang length ke satu arah sesuai mode yang diberikan
  * 1 = atas, 2 = kanan, 3 = bawah, 4 = kiri
@@ -612,7 +646,9 @@ void drawLaser(int* x, int* y, int mode, int length) {
 int main(int argc, char *argv[]) {
     initScreen();
     clearScreen();
-    
+    initPlayer();
+	drawPolylineArrayOutline(&player);
+
     int x=500, y=500;
     drawLaser(&x,&y,1,100);
     drawLaser(&x,&y,2,100);
@@ -622,6 +658,15 @@ int main(int argc, char *argv[]) {
     drawLaser(&x,&y,1,100);
     printf("%d,%d",x,y);
     
+    while (1){
+    	clearScreen();
+    	drawPolylineArrayOutline(&player);
+    	movePolylineArray(&player, 1, 1);
+    	rotatePolylineArray(&player, xmiddle - 15, ymiddle + 40, 1);
+    	nanosleep(delayperframe,NULL);
+    }
+
+
     floodFill(555,455, 0,255,0,0, 255,0,0,0);
     
     terminate();
