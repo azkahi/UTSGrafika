@@ -687,7 +687,7 @@ void initStage(PolyLineArray* stage){
 	
 	PolyLine p;
 
-    FILE* file = fopen("dataBangunan.txt", "r"); /* should check the result */
+    FILE* file = fopen("palace.txt", "r"); /* should check the result */
     char line[500];
 	int pertama = 1;
 	initPolyline(&p, r, g, b, a); //polyline pertama
