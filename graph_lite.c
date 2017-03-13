@@ -51,7 +51,7 @@ void terminate() {
      close(fbfd);
 }
 
-char getKeyPress() {
+/*char getKeyPress() {
     char buf = 0;
     struct termios old = {0};
     struct termios new = {0};
@@ -69,7 +69,44 @@ char getKeyPress() {
     if (tcsetattr(0, TCSADRAIN, &old) < 0)
             perror ("tcsetattr ~ICANON");
     return (buf);
+}*/
+
+//KEYPRESS HANDLER==============================
+static struct termios old, news;
+
+/*Init Termios*/
+void initTermios(int echo) 
+{
+  tcgetattr(0, &old); /* grab old terminal i/o settings */
+  news = old; /* make new settings same as old settings */
+  news.c_lflag &= ~ICANON; /* disable buffered i/o */
+  news.c_lflag &= echo ? ECHO : ~ECHO; /* set echo mode */
+  tcsetattr(0, TCSANOW, &news); /* use these new terminal i/o settings now */
 }
+
+/* Restore old terminal i/o settings */
+void resetTermios(void) 
+{
+  tcsetattr(0, TCSANOW, &old);
+}
+
+/* Read 1 character - echo defines echo mode */
+char getch_(int echo) 
+{
+  char ch;
+  initTermios(echo);
+  ch = getchar();
+  resetTermios();
+  return ch;
+}
+
+/* Read 1 character without echo */
+char getch(void) 
+{
+  return getch_(0);
+}
+//=============================================
+
 
 // PROSEDUR RESET LAYAR DAN PEWARNAAN PIXEL----------------------------------------------------------------- //
 int plotPixelRGBA(int _x, int _y, int r, int g, int b, int a) {
@@ -840,63 +877,69 @@ void removePlayerLaser() {
 // METODE HANDLER THREAD IO--------------------------------------------------------------------------------- //
 
 void processPlayerInput() {
-	
-	char X = getKeyPress();
-	if ((X == 'i') || (X == 'I')) { // Zoom in
-		scalePolylineArray(&player, xmiddle, ymiddle, 1.1);
-		scalePolylineArray(&stage, xmiddle, ymiddle, 1.1);
-		scalePolylineArray(&monster1, xmiddle, ymiddle, 1.1);
-		scalePolylineArray(&monster2, xmiddle, ymiddle, 1.1);
-	} else if ((X == 'o') || (X == 'O')) { // Zoom out
-		scalePolylineArray(&player, xmiddle, ymiddle, 1/1.1);
-		scalePolylineArray(&stage, xmiddle, ymiddle, 1/1.1);
-		scalePolylineArray(&monster1, xmiddle, ymiddle, 1.1);
-		scalePolylineArray(&monster2, xmiddle, ymiddle, 1.1);
-	} else if ((X == 'x') || (X == 'X')) { // Shoot laser
-		shootPlayerLaser();
-		
-	} else {
-		int rotate=0, move=0;
-		
-		// Right arrow
-		if (X == 'a') rotate = -1;
-		// Left arrow
-		else if (X == 'd') rotate = 1;
-		// Up arrow
-		else if (X == 's') move = -1;
-		// Down arrow
-		else if (X == 'w') move = 1;
-		
-		if(move != 0) {
-		
-			if(canPlayerMove(move*5)) movePlayer(move*5);
-		
-		}
-		
-		if(rotate != 0) {
-			rotatePlayer(rotate*90);
-			orient += rotate;
-			if(orient == 0) orient = 4;
-			if(orient == 5) orient = 1;
-		}
-	}
-	
-	drawScreenBorder();	
-	
-}
-
-void *keylistener(void *null) {
-    while (1) {
-		
+	while (1) {
 		if(shooted == 0) {
-			processPlayerInput();
-			
+			//proses input saja langsung
 		} else {
 			usleep(100000);
 			removePlayerLaser();
 		}
-		drawRotateWindmills();
 		
+		char X = getch();
+		if ((X == 'i') || (X == 'I')) { // Zoom in
+			scalePolylineArray(&player, xmiddle, ymiddle, 1.1);
+			scalePolylineArray(&stage, xmiddle, ymiddle, 1.1);
+			scalePolylineArray(&monster1, xmiddle, ymiddle, 1.1);
+			scalePolylineArray(&monster2, xmiddle, ymiddle, 1.1);
+		} else if ((X == 'o') || (X == 'O')) { // Zoom out
+			scalePolylineArray(&player, xmiddle, ymiddle, 1/1.1);
+			scalePolylineArray(&stage, xmiddle, ymiddle, 1/1.1);
+			scalePolylineArray(&monster1, xmiddle, ymiddle, 1.1);
+			scalePolylineArray(&monster2, xmiddle, ymiddle, 1.1);
+		} else if ((X == 'x') || (X == 'X')) { // Shoot laser
+			shootPlayerLaser();
+			
+		} else {
+			int rotate=0, move=0;
+			
+			// Right arrow
+			if (X == 'a') rotate = -1;
+			// Left arrow
+			else if (X == 'd') rotate = 1;
+			// Up arrow
+			else if (X == 's') move = -1;
+			// Down arrow
+			else if (X == 'w') move = 1;
+			
+			if(move != 0) {
+			
+				if(canPlayerMove(move*5)) movePlayer(move*5);
+			
+			}
+			
+			if(rotate != 0) {
+				rotatePlayer(rotate*90);
+				orient += rotate;
+				if(orient == 0) orient = 4;
+				if(orient == 5) orient = 1;
+			}
+		}
+		
+		drawScreenBorder();	
+		
+	}
+}
+
+void *keylistener(void *null) {
+    while (1) {
+		processPlayerInput();
+		
+    }
+}
+
+void *windmillspinner() {
+    while (1) {
+		drawRotateWindmills();
     }
 }
 
@@ -1085,14 +1128,17 @@ int main(int argc, char *argv[]) {
     initStage();
     initPlayer();
     initWindmill();
-
-    pthread_t listener, monsterRoutine;
-    pthread_create(&listener, NULL, keylistener, NULL);
+	
+    pthread_t listener, monsterRoutine, windmill;
+	pthread_create(&listener, NULL, keylistener, NULL);
 	pthread_join(listener, NULL);
-
+	
+	pthread_create(&windmill, NULL, windmillspinner, NULL);
+	pthread_join(windmill, NULL);
+	
     pthread_create(&monsterRoutine, NULL, fireMonster, NULL);
 	pthread_join(monsterRoutine, NULL);
-
+	
 	clearScreen();    
     terminate();
     return 0;
