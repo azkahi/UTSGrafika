@@ -604,7 +604,34 @@ int rground=0, gground=0, bground=0, aground=0;
 PolyLineArray player;
 int rplayer=255, gplayer=255, bplayer=255, aplayer=0;
 int xshoot, yshoot;	// The point the player will shoot
-int orient = 1;			// 1 = atas, 2 = kanan, 3 = bawah, 4 = kiri
+int orient = 1;		// 1 = atas, 2 = kanan, 3 = bawah, 4 = kiri
+
+// Poly Line Array Stage
+PolyLineArray stage;
+int rstage=0, gstage=0, bstage=255, astage=0;
+
+// Poly Line Array dari Monster
+PolyLineArray monster1, monster2;
+int rmonster=255, gmonster=126, bmonster=0, amonster=0;
+
+// Draw monster
+void initMonster(int posX, int posY, PolyLineArray* monster){
+	PolyLine body, head, barrel;
+	initPolyLineArray(&(*monster), 11);
+
+	initPolyline(&body, rmonster, gmonster, bmonster, amonster);
+	boxPolyline(&body, posX - 40, posY - 20 , posX + 40, posY + 20);
+
+	initPolyline(&head, rmonster, gmonster, bmonster, amonster);
+	boxPolyline(&head, posX - 5, posY - 20, posX + 5, posY - 30);
+	
+	initPolyline(&barrel, rmonster, gmonster, bmonster, amonster);
+	boxPolyline(&barrel, posX - 15, posY - 40, posX + 15, posY);
+
+	addPolyline(&(*monster), &body);
+	addPolyline(&(*monster), &head);
+	addPolyline(&(*monster), &barrel);
+}
 
 // Draw player
 void initPlayer(){
@@ -662,6 +689,7 @@ void rotatePlayer(float degree) {
 int rlaser=255, glaser=0, blaser=0, alaser=0;
 int shooted = 0;
 int playerLaserLength = 100;
+int monsterLaserLength = 200;
 
 /* Akan mulai mewarnai titik dari *x, *y sepanjang length ke satu arah sesuai mode yang diberikan
  * 1 = atas, 2 = kanan, 3 = bawah, 4 = kiri
@@ -740,9 +768,14 @@ void processPlayerInput() {
 		
 	} else if ((X == 'i') || (X == 'I')) { // Zoom in
 		scalePolylineArray(&player, xmiddle, ymiddle, 1.1);
+		scalePolylineArray(&stage, xmiddle, ymiddle, 1.1);
+		scalePolylineArray(&monster1, xmiddle, ymiddle, 1.1);
+		scalePolylineArray(&monster2, xmiddle, ymiddle, 1.1);
 	} else if ((X == 'o') || (X == 'O')) { // Zoom out
 		scalePolylineArray(&player, xmiddle, ymiddle, 1/1.1);
-	
+		scalePolylineArray(&stage, xmiddle, ymiddle, 1/1.1);
+		scalePolylineArray(&monster1, xmiddle, ymiddle, 1.1);
+		scalePolylineArray(&monster2, xmiddle, ymiddle, 1.1);
 	} else if ((X == 'x') || (X == 'X')) { // Shoot laser
 		shootPlayerLaser();
 		
@@ -764,10 +797,12 @@ void *keylistener(void *null) {
     }
 }
 
-
-// Poly Line Array Stage
-PolyLineArray stage;
-int rstage=0, gstage=0, bstage=255, astage=0;
+void *fireMonster(){
+	while(1) {
+		usleep(100000);
+		shootPlayerLaser();
+	}
+}
 
 //Poly Line Stage
 void initStage() {	
@@ -782,19 +817,15 @@ void initStage() {
     
 	int pertama = 1;
 	initPolyline(&p, rstage, gstage, bstage, astage); //polyline pertama
-	//printf("init poly satu\n");
     
     while (fgets(line, sizeof(line), file)) {
 		
         //Jika merupakan baris berisi jumlah point
         if(strlen(line) <= 4 && (pertama != 1)){
 			
-			//printf("%s", line);
 			setFirePoint(&p, firex, firey);
 			addPolyline(&stage, &p);
-			//printf("added poly\n");
 			initPolyline(&p, rstage, gstage, bstage, astage); //polyline selanjutnya
-			//printf("init poly\n");
 			
 		//Jika merupakan baris berisi x y 
 		} else {
@@ -807,30 +838,25 @@ void initStage() {
 				printf("%d ", x);
 				printf("%d\n", y);
 				addEndPoint(&p, x, y);
-				//printf("added end point\n");
 			}
 		}
 	}
 	
     //elemen terakhir
     setFirePoint(&p, firex, firey);
-    //printf("set fire last\n");
 	addPolyline(&stage, &p);
-	//printf("add poly last\n");
-	//printf("sebelum fclose\n");
     fclose(file);
-    //printf("end\n");
     
 }
 
 
-/* Akan menggerakan SEMUA Model sesuai dx dan dy
- * */
+/* Akan menggerakan SEMUA Model sesuai dx dan dy */
 void moveAll(int dx, int dy) {
 	movePolylineArray(&player, dx, dy);
 	movePolylineArray(&stage, dx, dy);
+	movePolylineArray(&monster1, dx, dy);
+	movePolylineArray(&monster2, dx, dy);
 }
-
 
 //MAIN PROGRAM
 int main(int argc, char *argv[]) {
@@ -839,13 +865,18 @@ int main(int argc, char *argv[]) {
     clearScreen();
     initPlayer();
     initStage();
-    
+ 	initMonster(xmiddle + 200, ymiddle + 50, &monster1);
+ 	initMonster(xmiddle - 200, ymiddle - 100, &monster2);
+
 	drawPolylineArrayOutline(&player);
 	drawPolylineArrayOutline(&stage);
 
-    pthread_t listener;
+    pthread_t listener, monsterRoutine;
     pthread_create(&listener, NULL, keylistener, NULL);
 	pthread_join(listener, NULL);
+
+    pthread_create(&monsterRoutine, NULL, fireMonster, NULL);
+	pthread_join(monsterRoutine, NULL);
 
 	clearScreen();    
     terminate();
