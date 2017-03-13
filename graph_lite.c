@@ -779,13 +779,43 @@ void drawLaser(int* x, int* y, int mode, int length) {
 	}
 }
 
+int isHitMonster(int xshoot, int yshoot, int mode, int length){
+	int x = xshoot, y = yshoot;
+	for(int i=1; i<=length; i++) {
+		if(isPixelColor(x,y, rmonster,gmonster,bmonster,amonster)) {
+			return 1;
+		}
+		if(mode==1) (y)--;
+		else if(mode==2) (x)++;
+		else if(mode==3) (y)++;
+		else (x)--;
+	}
+	return 0;
+}
+int isHitPlayer(int xshoot, int yshoot, int mode, int length){
+	int x = xshoot, y = yshoot;
+	for(int i=1; i<=length; i++) {
+		if(isPixelColor(x,y, rplayer,gplayer,bplayer,aplayer)) {
+			return 1;
+		}
+		if(mode==1) (y)--;
+		else if(mode==2) (x)++;
+		else if(mode==3) (y)++;
+		else (x)--;
+	}
+	return 0;
+}
+
 void shootPlayerLaser() {
 	int x = xshoot;
 	int y = yshoot;
 	drawLaser(&x,&y,orient,playerLaserLength);
 	shooted = 1;
 	
-	// SHOOTING CHECKIN HERE
+	 if (isHitMonster(xshoot,yshoot,orient,playerLaserLength)){
+		 // SHOOTING ACTION HERE
+		 printf("HIT\n");
+	 }
 	
 }
 
