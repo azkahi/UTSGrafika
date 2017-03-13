@@ -842,20 +842,30 @@ void removePlayerLaser() {
 void processPlayerInput() {
 	
 	char X = getKeyPress();
-	if (X == '\033') {
+	if ((X == 'i') || (X == 'I')) { // Zoom in
+		scalePolylineArray(&player, xmiddle, ymiddle, 1.1);
+		scalePolylineArray(&stage, xmiddle, ymiddle, 1.1);
+		scalePolylineArray(&monster1, xmiddle, ymiddle, 1.1);
+		scalePolylineArray(&monster2, xmiddle, ymiddle, 1.1);
+	} else if ((X == 'o') || (X == 'O')) { // Zoom out
+		scalePolylineArray(&player, xmiddle, ymiddle, 1/1.1);
+		scalePolylineArray(&stage, xmiddle, ymiddle, 1/1.1);
+		scalePolylineArray(&monster1, xmiddle, ymiddle, 1.1);
+		scalePolylineArray(&monster2, xmiddle, ymiddle, 1.1);
+	} else if ((X == 'x') || (X == 'X')) { // Shoot laser
+		shootPlayerLaser();
 		
-		getKeyPress();
-		X = getKeyPress();
+	} else {
 		int rotate=0, move=0;
 		
 		// Right arrow
-		if (X == 'D') rotate = -1;
+		if (X == 'a') rotate = -1;
 		// Left arrow
-		else if (X == 'C') rotate = 1;
+		else if (X == 'd') rotate = 1;
 		// Up arrow
-		else if (X == 'B') move = -1;
+		else if (X == 's') move = -1;
 		// Down arrow
-		else if (X == 'A') move = 1;
+		else if (X == 'w') move = 1;
 		
 		if(move != 0) {
 		
@@ -869,21 +879,8 @@ void processPlayerInput() {
 			if(orient == 0) orient = 4;
 			if(orient == 5) orient = 1;
 		}
-		
-	} else if ((X == 'i') || (X == 'I')) { // Zoom in
-		scalePolylineArray(&player, xmiddle, ymiddle, 1.1);
-		scalePolylineArray(&stage, xmiddle, ymiddle, 1.1);
-		scalePolylineArray(&monster1, xmiddle, ymiddle, 1.1);
-		scalePolylineArray(&monster2, xmiddle, ymiddle, 1.1);
-	} else if ((X == 'o') || (X == 'O')) { // Zoom out
-		scalePolylineArray(&player, xmiddle, ymiddle, 1/1.1);
-		scalePolylineArray(&stage, xmiddle, ymiddle, 1/1.1);
-		scalePolylineArray(&monster1, xmiddle, ymiddle, 1.1);
-		scalePolylineArray(&monster2, xmiddle, ymiddle, 1.1);
-	} else if ((X == 'x') || (X == 'X')) { // Shoot laser
-		shootPlayerLaser();
-		
 	}
+	
 	drawScreenBorder();	
 	
 }
