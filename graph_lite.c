@@ -27,6 +27,10 @@ int ymiddle;
 
 void drawScreenBorder();
 void moveAll(int dx, int dy);
+void drawRotateWindmills();
+
+// Warna background layar
+int rground=0, gground=0, bground=0, aground=0;
 
 // UTILITY PROCEDURE----------------------------------------------------------------------------------------- //
 int isOverflow(int _x , int _y) {
@@ -435,15 +439,15 @@ void drawScreenBorder() {
 // METODE ANIMASI POLYLINE---------------------------------------------------------------------------------- //
 void deletePolyline(PolyLine* p) {
 
-  fillPolyline(p, 0,0,0,0);
+	fillPolyline(p, rground,gground,bground,aground);
 	int r = (*p).r;
 	int g = (*p).g;
 	int b = (*p).b;
 	int a = (*p).a;
-	(*p).r = 0;
-	(*p).g = 0;
-	(*p).b = 0;
-	(*p).a = 0;
+	(*p).r = rground;
+	(*p).g = gground;
+	(*p).b = bground;
+	(*p).a = aground;
 	drawPolylineOutline(p);
 	(*p).r = r;
 	(*p).g = g;
@@ -593,9 +597,6 @@ void rotatePolylineArray(PolyLineArray* parr, int xr, int yr, double degrees) {
 //-----PERBATASAN API <-> KODE TUGAS UTS-----//-----PERBATASAN API <-> KODE TUGAS UTS-----//
 //-----PERBATASAN API <-> KODE TUGAS UTS-----//-----PERBATASAN API <-> KODE TUGAS UTS-----//
 
-// Warna background layar
-int rground=0, gground=0, bground=0, aground=0;
-
 
 // Poly Line Array Player
 PolyLineArray player;
@@ -625,6 +626,7 @@ void initPlayer(){
 	addPolyline(&player, &moncong);
 	addPolyline(&player, &turret);
 
+	drawPolylineArrayOutline(&player);
 }
 
 int canPlayerMove(int dist) {
@@ -693,9 +695,8 @@ int canPlayerMove(int dist) {
 		}
 	
 	}
-	printf("i = %d\n",i);
+	
 	return i>=dist;	
-
 }
 
 /* Akan menggerakan model player sesuai orientasi dan distance
@@ -833,6 +834,8 @@ void *keylistener(void *null) {
 			usleep(100000);
 			removePlayerLaser();
 		}
+		drawRotateWindmills();
+		
     }
 }
 
@@ -841,7 +844,6 @@ void *keylistener(void *null) {
 PolyLineArray stage;
 int rstage=0, gstage=0, bstage=255, astage=0;
 
-//Poly Line Stage
 void initStage() {	
 	int firex, firey = 0;
 	int jmlBangunan = 1;
@@ -893,32 +895,135 @@ void initStage() {
     fclose(file);
     //printf("end\n");
     
+    drawPolylineArrayOutline(&stage);
     scalePolylineArray(&stage, xmiddle, ymiddle, 3);
     movePolylineArray(&stage, 1400,-180);
     
 }
 
 
+PolyLineArray windmills;
+int rbase=0, gbase=0, bbase=255, abase=0;
+int rbasecolor=0, gbasecolor=0, bbasecolor=126, abasecolor=0;
+int rblade=0, gblade=255, bblade=0, ablade=0;
+int rbladecolor=0, gbladecolor=126, bbladecolor=0, abladecolor=0;
+
+void addWindmill(int x, int y, float scale) {
+	PolyLine base;
+	initPolyline(&base, rbase,gbase,bbase,abase);
+	addEndPoint(&base, x+(50*scale), y+(50*scale));
+	addEndPoint(&base, x+(50*scale), y-(50*scale));
+	addEndPoint(&base, x-(50*scale), y-(50*scale));
+	addEndPoint(&base, x-(50*scale), y+(50*scale));
+    setFirePoint(&base, x, y);
+	addPolyline(&windmills,&base);
+	
+	PolyLine blade;
+	initPolyline(&blade, rblade,gblade,bblade,ablade);
+	addEndPoint(&blade, x+(25*scale), y+(25*scale));
+	addEndPoint(&blade, x+(100*scale), y+(25*scale));
+	addEndPoint(&blade, x+(25*scale), y-(25*scale));
+	addEndPoint(&blade, x+(25*scale), y-(100*scale));
+	addEndPoint(&blade, x-(25*scale), y-(25*scale));
+	addEndPoint(&blade, x-(100*scale), y-(25*scale));
+	addEndPoint(&blade, x-(25*scale), y+(25*scale));
+	addEndPoint(&blade, x-(25*scale), y+(100*scale));
+    setFirePoint(&blade, x, y);
+	addPolyline(&windmills,&blade);
+}
+
+void initWindmill() {
+	initPolyLineArray(&windmills, 50);
+	addWindmill(550, 250, 1);
+	addWindmill(750, 750, 1);
+	addWindmill(2200, 600, 1);
+	drawPolylineArrayOutline(&windmills);
+}
+
+void rotatePolylineWithoutDelete(PolyLine* p, int xr, int yr, double degrees) {
+
+	double cosr = cos((22*degrees)/(180*7));
+	double sinr = sin((22*degrees)/(180*7));
+	double tempx;
+	double tempy;
+
+	tempx = xr + (((*p).xp - xr) * cosr) - (((*p).yp - yr) * sinr);
+	tempy = yr + (((*p).xp - xr) * sinr) + (((*p).yp - yr) * cosr);
+	(*p).xp = round(tempx);
+	(*p).yp = round(tempy);
+
+	int i;
+	for(i=0; i<(*p).PointCount; i++) {
+		tempx = xr + (((*p).x[i] - xr) * cosr) - (((*p).y[i] - yr) * sinr);
+		tempy = yr + (((*p).x[i] - xr) * sinr) + (((*p).y[i] - yr) * cosr);
+		(*p).x[i] = round(tempx);
+		(*p).y[i] = round(tempy);
+	}
+
+	drawPolylineOutline(p);
+}
+
+void drawRotateWindmills() {
+	int i=0;
+	for(i=0; i<windmills.PolyCount; i+=2) {
+		deletePolyline(&(windmills.arr[i+1]));
+		
+		drawPolylineOutline(&(windmills.arr[i]));
+		fillPolyline(&(windmills.arr[i]), rbasecolor,gbasecolor,bbasecolor,abasecolor);
+		
+		rotatePolylineWithoutDelete(&(windmills.arr[i+1]), windmills.arr[i+1].xp, windmills.arr[i+1].yp, -15);
+		fillPolyline(&(windmills.arr[i+1]), rbladecolor,gbladecolor,bbladecolor,abladecolor);
+	}
+}
+
+void movePolylineNoDelete(PolyLine* p, int dx, int dy) {
+
+	int tempx;
+	int tempy;
+
+	tempx = (*p).xp + dx;
+	tempy = (*p).yp + dy;
+	(*p).xp = tempx;
+	(*p).yp = tempy;
+
+	int i;
+	for(i=0; i<(*p).PointCount; i++) {
+		tempx = (*p).x[i] + dx;
+		tempy = (*p).y[i] + dy;
+		(*p).x[i] = tempx;
+		(*p).y[i] = tempy;
+	}
+	drawPolylineOutline(p);
+}
+
+void moveWindmills(int dx, int dy) {
+	int i;
+	for(i=0; i<windmills.PolyCount; i+=2) {
+		deletePolyline(&(windmills.arr[i+1]));
+		deletePolyline(&(windmills.arr[i]));
+		
+		movePolylineNoDelete(&(windmills.arr[i]), dx,dy);
+		movePolylineNoDelete(&(windmills.arr[i+1]), dx,dy);
+	}
+}
+
 /* Akan menggerakan SEMUA Model sesuai dx dan dy
  * */
 void moveAll(int dx, int dy) {
 	movePolylineArray(&player, dx, dy);
 	movePolylineArray(&stage, dx, dy);
+	moveWindmills(dx, dy);
 }
 
 
 //MAIN PROGRAM
 int main(int argc, char *argv[]) {
-	
     initScreen();
     clearScreen();
-    initPlayer();
+    
     initStage();
-    
-    printf("xmiddle,ymiddle %d,%d",xmiddle,ymiddle);
-    
-	drawPolylineArrayOutline(&player);
-	drawPolylineArrayOutline(&stage);
+    initPlayer();
+    initWindmill();
 
     pthread_t listener;
     pthread_create(&listener, NULL, keylistener, NULL);
