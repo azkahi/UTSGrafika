@@ -26,6 +26,7 @@ int xmiddle;
 int ymiddle;
 
 void drawScreenBorder();
+void moveAll(int dx, int dy);
 
 // UTILITY PROCEDURE----------------------------------------------------------------------------------------- //
 int isOverflow(int _x , int _y) {
@@ -527,7 +528,10 @@ typedef struct {
 } PolyLineArray;
 
 void initPolyLineArray(PolyLineArray* p, int size) {
+	
+	printf("init poly satu\n");
 	(*p).arr = (PolyLine *)malloc(size * sizeof(PolyLine));
+	printf("init poly satu\n");
 	(*p).PolyCount = 0;
 }
 
@@ -595,37 +599,69 @@ void rotatePolylineArray(PolyLineArray* parr, int xr, int yr, double degrees) {
 // Warna background layar
 int rground=0, gground=0, bground=0, aground=0;
 
-// Warna laser
-int rlaser=255, glaser=0, blaser=0, alaser=0;
-
-//Delay per frame, 16.666666667L berarti 30 fps
-const struct timespec* delayperframe = (const struct timespec[]){{0,16666667L}};
 
 // Poly Line Array Player
 PolyLineArray player;
-
-PolyLine body, moncong, turret;
+int rplayer=255, gplayer=255, bplayer=255, aplayer=0;
+int xshoot, yshoot;	// The point the player will shoot
+int orient = 1;			// 1 = atas, 2 = kanan, 3 = bawah, 4 = kiri
 
 // Draw player
 void initPlayer(){
+	
+	PolyLine body, moncong, turret;
 	initPolyLineArray(&player, 11);
 
-	int x=xmiddle, y=ymiddle;
-
-	initPolyline(&body, 255, 255, 255, 0);
+	initPolyline(&body, rplayer, gplayer, bplayer, aplayer);
 	boxPolyline(&body, xmiddle - 25, ymiddle - 40, xmiddle + 25, ymiddle + 40);
 
-	initPolyline(&moncong, 255, 255, 255, 0);
+	initPolyline(&moncong, rplayer, gplayer, bplayer, aplayer);
 	boxPolyline(&moncong, xmiddle - 5, ymiddle - 40, xmiddle + 5, ymiddle - 80);
-
-	initPolyline(&turret, 255, 255, 255, 0);
+	
+	initPolyline(&turret, rplayer, gplayer, bplayer, aplayer);
 	boxPolyline(&turret, xmiddle - 15, ymiddle - 40, xmiddle + 15, ymiddle);
+
+	xshoot = xmiddle;
+	yshoot = ymiddle - 85;
 
 	addPolyline(&player, &body);
 	addPolyline(&player, &moncong);
 	addPolyline(&player, &turret);
 
 }
+
+/* Akan menggerakan model player sesuai orientasi dan distance
+ * */
+void movePlayer(int dist) {
+	
+	int x=0, y=0;
+	if(orient==1) y--;
+	else if(orient==2) x++;
+	else if(orient==3) y++;
+	else x--;
+	
+	movePolylineArray(&player, x*dist, y*dist);
+	moveAll(-x*dist, -y*dist);
+}
+
+/* Akan memutar model player dan xyshoot sebesar degree mengelangi xymiddle
+ * */
+void rotatePlayer(float degree) {
+	rotatePolylineArray(&player, xmiddle, ymiddle, degree);
+	
+	double cosr = cos((22*degree)/(180*7));
+	double sinr = sin((22*degree)/(180*7));
+	double tempx = xmiddle + ((xshoot - xmiddle) * cosr) - ((yshoot - ymiddle) * sinr);
+	double tempy = ymiddle + ((xshoot - xmiddle) * sinr) + ((yshoot - ymiddle) * cosr);
+	xshoot = round(tempx);
+	yshoot = round(tempy);
+}
+
+
+// Warna laser
+int rlaser=255, glaser=0, blaser=0, alaser=0;
+int shooted = 0;
+int playerLaserLength = 100;
 
 /* Akan mulai mewarnai titik dari *x, *y sepanjang length ke satu arah sesuai mode yang diberikan
  * 1 = atas, 2 = kanan, 3 = bawah, 4 = kiri
@@ -645,113 +681,171 @@ void drawLaser(int* x, int* y, int mode, int length) {
 	}
 }
 
+void shootPlayerLaser() {
+	int x = xshoot;
+	int y = yshoot;
+	drawLaser(&x,&y,orient,playerLaserLength);
+	shooted = 1;
+	
+	// SHOOTING CHECKIN HERE
+	
+}
+
+void removePlayerLaser() {
+	int x = xshoot;
+	int y = yshoot;
+	
+	int i;
+	for(int i=1; i<=playerLaserLength; i++) {
+		if(isPixelColor(x,y, rlaser,glaser,blaser,alaser)) {
+			plotPixelRGBA(x,y, rground,gground,bground,aground);
+		} else break;
+		if(orient==1) y--;
+		else if(orient==2) x++;
+		else if(orient==3) y++;
+		else x--;
+	}
+	
+	shooted = 0;
+}
+
 // METODE HANDLER THREAD IO--------------------------------------------------------------------------------- //
+
+void processPlayerInput() {
+	
+	char X = getKeyPress();
+	if (X == '\033') {
+		
+		getKeyPress();
+		X = getKeyPress();
+		int rotate=0, move=0;
+		
+		// Right arrow
+		if (X == 'D') rotate = -1;
+		// Left arrow
+		else if (X == 'C') rotate = 1;
+		// Up arrow
+		else if (X == 'B') move = -1;
+		// Down arrow
+		else if (X == 'A') move = 1;
+		
+		if(move != 0) movePlayer(move*5);
+		
+		if(rotate != 0) {
+			rotatePlayer(rotate*90);
+			orient += rotate;
+			if(orient == 0) orient = 4;
+			if(orient == 5) orient = 1;
+		}
+		
+	} else if ((X == 'i') || (X == 'I')) { // Zoom in
+		scalePolylineArray(&player, xmiddle, ymiddle, 1.1);
+	} else if ((X == 'o') || (X == 'O')) { // Zoom out
+		scalePolylineArray(&player, xmiddle, ymiddle, 1/1.1);
+	
+	} else if ((X == 'x') || (X == 'X')) { // Shoot laser
+		shootPlayerLaser();
+		
+	}
+	drawScreenBorder();	
+	
+}
+
 void *keylistener(void *null) {
     while (1) {
-        char X = getKeyPress();
-        if (X == '\033') {
-        	getKeyPress();
-        	X = getKeyPress();
-
-        	if (X == 'D') { // Right arrow
-        		rotatePolylineArray(&player, player.arr[0].x[1], player.arr[0].y[1], -90);
-        	} else if (X == 'C') { // Left arrow
-        		rotatePolylineArray(&player, player.arr[0].x[1], player.arr[0].y[1], 90);
-        	} else if (X == 'B') { // Up arrow
-				movePolylineArray(&player, 0, 5);
-        	} else if (X == 'A') { // Down arrow
-				movePolylineArray(&player, 0, -5);
-        	}
-        } else if ((X == 'i') || (X == 'I')) { // Zoom in
-        	scalePolylineArray(&player, xmiddle, ymiddle, 1.1);
-        } else if ((X == 'o') || (X == 'O')) { // Zoom out
-        	scalePolylineArray(&player, xmiddle, ymiddle, 1/1.1);
-        } else if ((X == 'z') || (X == 'Z')) { // Shoot laser
-        	// Still in experiment
-        	drawLaser(&(player.arr[1].x[0]) + 2,&(player.arr[1].y[0]) + 2,4,100);
-        }
-        drawScreenBorder();
+		
+		if(shooted == 0) {
+			processPlayerInput();
+			
+		} else {
+			usleep(100000);
+			removePlayerLaser();
+		}
     }
 }
 
+
+// Poly Line Array Stage
+PolyLineArray stage;
+int rstage=0, gstage=0, bstage=255, astage=0;
+
 //Poly Line Stage
-void initStage(PolyLineArray* stage){
-	int r = 255;
-	int g = 255;
-	int b = 255;
-	int a = 0;
+void initStage() {	
 	int firex, firey = 0;
 	int jmlBangunan = 1;
 	
-	initPolyLineArray(stage, 80);
+	initPolyLineArray(&stage, 80);
 	
 	PolyLine p;
-
     FILE* file = fopen("palace.txt", "r"); /* should check the result */
     char line[500];
+    
 	int pertama = 1;
-	initPolyline(&p, r, g, b, a); //polyline pertama
-	printf("init poly satu\n");
+	initPolyline(&p, rstage, gstage, bstage, astage); //polyline pertama
+	//printf("init poly satu\n");
+    
     while (fgets(line, sizeof(line), file)) {
+		
         //Jika merupakan baris berisi jumlah point
         if(strlen(line) <= 4 && (pertama != 1)){
-			printf("%s", line);
+			
+			//printf("%s", line);
 			setFirePoint(&p, firex, firey);
-			addPolyline(stage, &p);
-			printf("added poly\n");
-			initPolyline(&p, r, g, b, a); //polyline selanjutnya
-			printf("init poly\n");
-		}
+			addPolyline(&stage, &p);
+			//printf("added poly\n");
+			initPolyline(&p, rstage, gstage, bstage, astage); //polyline selanjutnya
+			//printf("init poly\n");
+			
 		//Jika merupakan baris berisi x y 
-		else {
-			if (pertama == 1){
-				pertama = 0;
-			} else {
+		} else {
+			
+			if (pertama == 1) pertama = 0;
+			else {
 				int x;
 				int y;
 				sscanf(line, "%d %d", &x, &y);
 				printf("%d ", x);
 				printf("%d\n", y);
 				addEndPoint(&p, x, y);
-				printf("added end point\n");
+				//printf("added end point\n");
 			}
 		}
 	}
+	
     //elemen terakhir
     setFirePoint(&p, firex, firey);
-    printf("set fire last\n");
-	addPolyline(stage, &p);
-	printf("add poly last\n");
-	printf("sebelum fclose\n");
+    //printf("set fire last\n");
+	addPolyline(&stage, &p);
+	//printf("add poly last\n");
+	//printf("sebelum fclose\n");
     fclose(file);
-    printf("end\n");
+    //printf("end\n");
+    
 }
+
+
+/* Akan menggerakan SEMUA Model sesuai dx dan dy
+ * */
+void moveAll(int dx, int dy) {
+	movePolylineArray(&player, dx, dy);
+	movePolylineArray(&stage, dx, dy);
+}
+
 
 //MAIN PROGRAM
 int main(int argc, char *argv[]) {
-	PolyLineArray *parr;
+	
     initScreen();
     clearScreen();
     initPlayer();
-    initStage(parr);
+    initStage();
     
 	drawPolylineArrayOutline(&player);
-	drawPolylineArrayOutline(parr);
-
-    int x=500, y=500;
-    drawLaser(&x,&y,1,100);
-    drawLaser(&x,&y,2,100);
-    drawLaser(&x,&y,3,100);
-    drawLaser(&x,&y,4,100);
-    x=550; y=450;
-    drawLaser(&x,&y,1,100);
-    printf("%d,%d",x,y);
+	drawPolylineArrayOutline(&stage);
 
     pthread_t listener;
     pthread_create(&listener, NULL, keylistener, NULL);
 	pthread_join(listener, NULL);
-
-    floodFill(555,455, 0,255,0,0, 255,0,0,0);
 
 	clearScreen();    
     terminate();
