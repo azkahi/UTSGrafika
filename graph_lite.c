@@ -528,10 +528,7 @@ typedef struct {
 } PolyLineArray;
 
 void initPolyLineArray(PolyLineArray* p, int size) {
-	
-	printf("init poly satu\n");
 	(*p).arr = (PolyLine *)malloc(size * sizeof(PolyLine));
-	printf("init poly satu\n");
 	(*p).PolyCount = 0;
 }
 
@@ -603,7 +600,7 @@ int rground=0, gground=0, bground=0, aground=0;
 // Poly Line Array Player
 PolyLineArray player;
 int rplayer=255, gplayer=255, bplayer=255, aplayer=0;
-int xshoot, yshoot;	// The point the player will shoot
+int xshoot, yshoot;	// The point the player will shoot from
 int orient = 1;			// 1 = atas, 2 = kanan, 3 = bawah, 4 = kiri
 
 // Draw player
@@ -613,20 +610,91 @@ void initPlayer(){
 	initPolyLineArray(&player, 11);
 
 	initPolyline(&body, rplayer, gplayer, bplayer, aplayer);
-	boxPolyline(&body, xmiddle - 25, ymiddle - 40, xmiddle + 25, ymiddle + 40);
+	boxPolyline(&body, xmiddle - 25, ymiddle - 20, xmiddle + 25, ymiddle + 60);
 
 	initPolyline(&moncong, rplayer, gplayer, bplayer, aplayer);
-	boxPolyline(&moncong, xmiddle - 5, ymiddle - 40, xmiddle + 5, ymiddle - 80);
+	boxPolyline(&moncong, xmiddle - 5, ymiddle - 20, xmiddle + 5, ymiddle - 60);
 	
 	initPolyline(&turret, rplayer, gplayer, bplayer, aplayer);
-	boxPolyline(&turret, xmiddle - 15, ymiddle - 40, xmiddle + 15, ymiddle);
+	boxPolyline(&turret, xmiddle - 15, ymiddle - 20, xmiddle + 15, ymiddle + 20);
 
 	xshoot = xmiddle;
-	yshoot = ymiddle - 85;
+	yshoot = ymiddle - 62;
 
 	addPolyline(&player, &body);
 	addPolyline(&player, &moncong);
 	addPolyline(&player, &turret);
+
+}
+
+int canPlayerMove(int dist) {
+	
+	int x = xshoot;
+	int y = yshoot;	
+	int i;
+	
+	if(dist > 0) {
+		
+		if((orient==1)||(orient==3)) {
+			for(i=1; i<=dist; i++) {
+				if(!isPixelColor(x-2,y, rground,gground,bground,aground)) break;
+				if(!isPixelColor(x-1,y, rground,gground,bground,aground)) break;
+				if(!isPixelColor(x,y, rground,gground,bground,aground)) break;
+				if(!isPixelColor(x+1,y, rground,gground,bground,aground)) break;
+				if(!isPixelColor(x+2,y, rground,gground,bground,aground)) break;
+				if(orient==1) y--;
+				else y++;
+			}
+			
+		} else {
+			for(i=1; i<=dist; i++) {
+				if(!isPixelColor(x,y-2, rground,gground,bground,aground)) break;
+				if(!isPixelColor(x,y-1, rground,gground,bground,aground)) break;
+				if(!isPixelColor(x,y, rground,gground,bground,aground)) break;
+				if(!isPixelColor(x,y+1, rground,gground,bground,aground)) break;
+				if(!isPixelColor(x,y+2, rground,gground,bground,aground)) break;
+				if(orient==2) x++;
+				else x--;
+			}
+			
+		}
+		
+	} else {
+		
+		if(orient==1) y += 124;
+		else if(orient==2) x -= 124;
+		else if(orient==3) y -= 124;
+		else x += 124;
+		
+		dist = -dist;
+		
+		if((orient==1)||(orient==3)) {
+			for(i=1; i<=dist; i++) {
+				if(!isPixelColor(x-2,y, rground,gground,bground,aground)) break;
+				if(!isPixelColor(x-1,y, rground,gground,bground,aground)) break;
+				if(!isPixelColor(x,y, rground,gground,bground,aground)) break;
+				if(!isPixelColor(x+1,y, rground,gground,bground,aground)) break;
+				if(!isPixelColor(x+2,y, rground,gground,bground,aground)) break;
+				if(orient==1) y++;
+				else y--;
+			}
+			
+		} else {
+			for(i=1; i<=dist; i++) {
+				if(!isPixelColor(x,y-2, rground,gground,bground,aground)) break;
+				if(!isPixelColor(x,y-1, rground,gground,bground,aground)) break;
+				if(!isPixelColor(x,y, rground,gground,bground,aground)) break;
+				if(!isPixelColor(x,y+1, rground,gground,bground,aground)) break;
+				if(!isPixelColor(x,y+2, rground,gground,bground,aground)) break;
+				if(orient==2) x--;
+				else x++;
+			}
+			
+		}
+	
+	}
+	printf("i = %d\n",i);
+	return i>=dist;	
 
 }
 
@@ -729,7 +797,11 @@ void processPlayerInput() {
 		// Down arrow
 		else if (X == 'A') move = 1;
 		
-		if(move != 0) movePlayer(move*5);
+		if(move != 0) {
+		
+			if(canPlayerMove(move*5)) movePlayer(move*5);
+		
+		}
 		
 		if(rotate != 0) {
 			rotatePlayer(rotate*90);
@@ -804,8 +876,8 @@ void initStage() {
 				int x;
 				int y;
 				sscanf(line, "%d %d", &x, &y);
-				printf("%d ", x);
-				printf("%d\n", y);
+				//printf("%d ", x);
+				//printf("%d\n", y);
 				addEndPoint(&p, x, y);
 				//printf("added end point\n");
 			}
@@ -820,6 +892,9 @@ void initStage() {
 	//printf("sebelum fclose\n");
     fclose(file);
     //printf("end\n");
+    
+    scalePolylineArray(&stage, xmiddle, ymiddle, 3);
+    movePolylineArray(&stage, 1400,-180);
     
 }
 
@@ -839,6 +914,8 @@ int main(int argc, char *argv[]) {
     clearScreen();
     initPlayer();
     initStage();
+    
+    printf("xmiddle,ymiddle %d,%d",xmiddle,ymiddle);
     
 	drawPolylineArrayOutline(&player);
 	drawPolylineArrayOutline(&stage);
