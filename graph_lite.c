@@ -661,7 +661,7 @@ int isLose=0, isWin=0;
 // Poly Line Array dari Monster
 int nMonster = 0;
 PolyLineArray monsters[100];
-int xShootMonster[100], yShootMonster[100];
+int xShootMonster[100], yShootMonster[100], orientMonster[100];
 int rmonster=255, gmonster=126, bmonster=0, amonster=0;
 
 
@@ -881,7 +881,7 @@ void removePlayerLaser() {
 // --------------------------------------------------------------------------------------------------------- //
 // DEFINISI METODE PENGGAMBARAN, PENEMBAKAN, DAN HIT COLLISION MONSTER DAN LASERNYA ------------------------ //
 
-void initMonster(int posX, int posY){
+void initMonster(int posX, int posY, int orient){
 	
 	PolyLine body, head, barrel;
 	initPolyLineArray(&(monsters[nMonster]), 11);
@@ -898,9 +898,25 @@ void initMonster(int posX, int posY){
 	addPolyline(&(monsters[nMonster]), &body);
 	addPolyline(&(monsters[nMonster]), &head);
 	addPolyline(&(monsters[nMonster]), &barrel);
-
-	xShootMonster[nMonster] = posX;
-	yShootMonster[nMonster] = posY-42;
+	
+	if(orient == 1) {
+		xShootMonster[nMonster] = posX;
+		yShootMonster[nMonster] = posY-42;
+	} else if(orient == 2) {
+		rotatePolylineArray(&(monsters[nMonster]), posX,posY, 90);
+		xShootMonster[nMonster] = posX+42;
+		yShootMonster[nMonster] = posY;
+	} else if(orient == 3) {
+		rotatePolylineArray(&(monsters[nMonster]), posX,posY, 180);
+		xShootMonster[nMonster] = posX;
+		yShootMonster[nMonster] = posY+42;
+	} else {
+		rotatePolylineArray(&(monsters[nMonster]), posX,posY, 270);
+		xShootMonster[nMonster] = posX-42;
+		yShootMonster[nMonster] = posY;
+	}
+	
+	orientMonster[nMonster] = orient;
 	
 	nMonster++;
 }
@@ -948,11 +964,11 @@ void removeMonsterLaser(int xmonster, int ymonster, int orient_monster) {
 
 void fireMonster() {
 	for (int i=0; i<nMonster;i++){
-		shootMonsterLaser(xShootMonster[i],yShootMonster[i],1);
+		shootMonsterLaser(xShootMonster[i],yShootMonster[i],orientMonster[i]);
 	}
 	usleep(100000);
 	for (int i=0; i<nMonster;i++){
-		removeMonsterLaser(xShootMonster[i],yShootMonster[i],1);
+		removeMonsterLaser(xShootMonster[i],yShootMonster[i],orientMonster[i]);
 	}
 }
 
@@ -1305,8 +1321,8 @@ int main(int argc, char *argv[]) {
     initStage();
 
     // jumlah monster (nMonster) masih hardcoded, mungkin ada yang bisa ngubah jadi variable
- 	initMonster(xmiddle + 250, ymiddle + 200);
- 	initMonster(xmiddle - 500, ymiddle + 200);
+ 	initMonster(xmiddle + 250, ymiddle + 200,1);
+ 	initMonster(xmiddle - 500, ymiddle, 2);
 
 	drawPolylineArrayOutline(&player);
 	drawPolylineArrayOutline(&stage);
