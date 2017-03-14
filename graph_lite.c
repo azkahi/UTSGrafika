@@ -656,7 +656,7 @@ int player_life = 3;
 
 // Poly Line Array dari Monster
 PolyLineArray monster1, monster2;
-
+int monsterCount = 2;
 int xShootMonster[nMonster], yShootMonster[nMonster];
 int rmonster=255, gmonster=126, bmonster=0, amonster=0;
 
@@ -817,7 +817,6 @@ int isHit_Player(int xshoot, int yshoot, int mode, int length){
 	return 0;
 }
 
-
 void shootPlayerLaser() {
 	int x = xshoot;
 	int y = yshoot;
@@ -898,6 +897,7 @@ void shootMonsterLaser(int xmonster, int ymonster, int orient_monster) {
 		 player_life--;
 	 }	
 }
+
 void removeMonsterLaser(int xmonster, int ymonster, int orient_monster) {
 	int x = xmonster;
 	int y = ymonster;
@@ -919,78 +919,7 @@ void removeMonsterLaser(int xmonster, int ymonster, int orient_monster) {
 
 int isLose;
 
-void processPlayerInput() {
-	while (1) {
 
-		if (player_life <= 0){
-			isLose = 1;
-			break;
-		}
-
-		if(shooted == 1) {	
-			usleep(100000);
-			removePlayerLaser();
-		} 
-		
-		char X = getch();
-		if ((X == 'i') || (X == 'I')) { // Zoom in
-			scalePolylineArray(&player, xmiddle, ymiddle, 1.1);
-			scalePolylineArray(&stage, xmiddle, ymiddle, 1.1);
-			scalePolylineArray(&monster1, xmiddle, ymiddle, 1.1);
-			scalePolylineArray(&monster2, xmiddle, ymiddle, 1.1);
-		} else if ((X == 'o') || (X == 'O')) { // Zoom out
-			scalePolylineArray(&player, xmiddle, ymiddle, 1/1.1);
-			scalePolylineArray(&stage, xmiddle, ymiddle, 1/1.1);
-			scalePolylineArray(&monster1, xmiddle, ymiddle, 1.1);
-			scalePolylineArray(&monster2, xmiddle, ymiddle, 1.1);
-		} else if ((X == 'x') || (X == 'X')) { // Shoot laser
-			shootPlayerLaser();
-			
-		} else {
-			int rotate=0, move=0;
-			
-			// Right arrow
-			if (X == 'a') rotate = -1;
-			// Left arrow
-			else if (X == 'd') rotate = 1;
-			// Up arrow
-			else if (X == 's') move = -1;
-			// Down arrow
-			else if (X == 'w') move = 1;
-			
-			if(move != 0) {
-			
-				if(canPlayerMove(move*5)) movePlayer(move*5);
-			
-			}
-			
-			if(rotate != 0) {
-				rotatePlayer(rotate*90);
-				orient += rotate;
-				if(orient == 0) orient = 4;
-				if(orient == 5) orient = 1;
-			}
-		}
-		drawRotateWindmills();
-		fireMonster();
-		drawScreenBorder();	
-		
-		// Kondisi Kalah
-	}
-}
-
-// void *keylistener(void *null) {
-//     while (1) {
-// 		processPlayerInput();
-//     }
-// }
-
-// void *windmillspinner(void *null) {
-//     while (1) {
-// 		usleep(100000);
-		
-//     }
-// }
 
 void fireMonster(){
 	// while(1) {
@@ -1001,7 +930,7 @@ void fireMonster(){
 		for (int i=0; i<nMonster;i++){
 			removeMonsterLaser(xShootMonster[i],yShootMonster[i],1);
 		}
-		// usleep(100000);
+		//usleep(100000);
 	// }
 }
 
@@ -1049,7 +978,7 @@ void initStage() {
     
     drawPolylineArrayOutline(&stage);
     scalePolylineArray(&stage, xmiddle, ymiddle, 3);
-    movePolylineArray(&stage, 1400,-180);
+    movePolylineArray(&stage, 1900,-180);
     
 }
 
@@ -1148,6 +1077,27 @@ void movePolylineNoDelete(PolyLine* p, int dx, int dy) {
 	drawPolylineOutline(p);
 }
 
+void scalePolylineNoDelete(PolyLine* p, int xa, int ya, float ratio) {
+
+	double tempx;
+	double tempy;
+
+	tempx = xa + (((*p).xp - xa) * ratio);
+	tempy = ya + (((*p).yp - ya) * ratio);
+	(*p).xp = round(tempx);
+	(*p).yp = round(tempy);
+
+	int i;
+	for(i=0; i<(*p).PointCount; i++) {
+		tempx = xa + (((*p).x[i] - xa) * ratio);
+		tempy = ya + (((*p).y[i] - ya) * ratio);
+		(*p).x[i] = round(tempx);
+		(*p).y[i] = round(tempy);
+	}
+
+	drawPolylineOutline(p);
+}
+
 void moveWindmills(int dx, int dy) {
 	int i;
 	for(i=0; i<windmills.PolyCount; i+=2) {
@@ -1156,6 +1106,111 @@ void moveWindmills(int dx, int dy) {
 		
 		movePolylineNoDelete(&(windmills.arr[i]), dx,dy);
 		movePolylineNoDelete(&(windmills.arr[i+1]), dx,dy);
+	}
+}
+
+void scaleWindmills(int xa, int ya, float ratio) {
+	int i;
+	for(i=0; i<windmills.PolyCount; i+=2) {
+		deletePolyline(&(windmills.arr[i+1]));
+		deletePolyline(&(windmills.arr[i]));
+		
+		scalePolylineNoDelete(&(windmills.arr[i]), xa,ya, ratio);
+		scalePolylineNoDelete(&(windmills.arr[i+1]), xa,ya, ratio);
+	}
+}
+
+void scalePlayer(int xa, int ya, float ratio) {
+	scalePolylineArray(&player, xa, ya, ratio);
+	
+	double tempx;
+	double tempy;
+
+	tempx = xa + ((xshoot - xa) * ratio);
+	tempy = ya + ((yshoot - ya) * ratio);
+	xshoot = round(tempx);
+	yshoot = round(tempy);
+}
+
+void scaleMonster(int xa, int ya, float ratio) {
+	scalePolylineArray(&monster1, xa, ya, ratio);
+	scalePolylineArray(&monster2, xa, ya, ratio);
+	
+	double tempx;
+	double tempy;
+	int i;
+	
+	for (i = 0; i < monsterCount; i++){
+		tempx = xa + ((xShootMonster[i] - xa) * ratio);
+		tempy = ya + ((yShootMonster[i] - ya) * ratio);
+		xShootMonster[i] = round(tempx);
+		yShootMonster[i] = round(tempy);
+	}
+}
+
+void processPlayerInput() {
+	int counter = 50;
+	while (1) {
+
+		if (player_life <= 0){
+			isLose = 1;
+			break;
+		}
+
+		if(shooted == 1) {	
+			usleep(100000);
+			removePlayerLaser();
+		} 
+		
+		char X = getch();
+		if ((X == 'i') || (X == 'I')) { // Zoom in
+			scalePolylineArray(&stage, xmiddle, ymiddle, 1.1);
+			scalePlayer(xmiddle, ymiddle, 1.1);
+			scaleMonster(xmiddle, ymiddle, 1.1);
+			scaleWindmills(xmiddle, ymiddle, 1.1);
+		} else if ((X == 'o') || (X == 'O')) { // Zoom out
+			scalePolylineArray(&stage, xmiddle, ymiddle, 1/1.1);
+			scalePlayer(xmiddle, ymiddle, 1/1.1);
+			scaleMonster(xmiddle, ymiddle, 1/1.1);
+			scaleWindmills(xmiddle, ymiddle, 1/1.1);
+		} else if ((X == 'x') || (X == 'X')) { // Shoot laser
+			shootPlayerLaser();
+			
+		} else {
+			int rotate=0, move=0;
+			
+			// Right arrow
+			if (X == 'a') rotate = -1;
+			// Left arrow
+			else if (X == 'd') rotate = 1;
+			// Up arrow
+			else if (X == 's') move = -1;
+			// Down arrow
+			else if (X == 'w') move = 1;
+			
+			if(move != 0) {
+			
+				if(canPlayerMove(move*5)) movePlayer(move*5);
+			
+			}
+			
+			if(rotate != 0) {
+				rotatePlayer(rotate*90);
+				orient += rotate;
+				if(orient == 0) orient = 4;
+				if(orient == 5) orient = 1;
+			}
+		}
+		
+		//drawRotateWindmills();
+		counter--;
+		if (counter == 0){
+			fireMonster();
+			counter = 50;
+		}
+		drawScreenBorder();	
+		
+		// Kondisi Kalah
 	}
 }
 
@@ -1196,19 +1251,8 @@ int main(int argc, char *argv[]) {
 
     processPlayerInput();
 	
- //    pthread_t listener, monsterRoutine, thr_windmill;
-
-	// pthread_create(&listener, NULL, keylistener, NULL);
-	// // pthread_create(&thr_windmill, NULL, windmillspinner, NULL);
- //    // pthread_create(&monsterRoutine, NULL, fireMonster, NULL);
-
-	// pthread_join(listener, NULL);
-	// // pthread_join(thr_windmill, NULL);
-	// // pthread_join(monsterRoutine, NULL);
-	
 	clearScreen();
-	// terminate();
-
+	
 	if (isLose){
 		printf("GAME OVER\n");
 	}
