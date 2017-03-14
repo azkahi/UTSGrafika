@@ -1272,13 +1272,13 @@ void processPlayerInput() {
 		} 
 		
 		char X = getch();
-		if (((X == 'i') || (X == 'I')) && (countZoom < 100)) { // Zoom in
+		if (((X == 'i') || (X == 'I')) && (countZoom < 2)) { // Zoom in
 			scalePolylineArray(&stage, xmiddle, ymiddle, 1.1);
 			scalePlayer(xmiddle, ymiddle, 1.1);
 			scaleMonster(xmiddle, ymiddle, 1.1);
 			scaleWindmills(xmiddle, ymiddle, 1.1);
 			countZoom++;
-		} else if (((X == 'o') || (X == 'O')) && (countZoom > -100)) { // Zoom out
+		} else if (((X == 'o') || (X == 'O')) && (countZoom > -2)) { // Zoom out
 			scalePolylineArray(&stage, xmiddle, ymiddle, 1/1.1);
 			scalePlayer(xmiddle, ymiddle, 1/1.1);
 			scaleMonster(xmiddle, ymiddle, 1/1.1);
