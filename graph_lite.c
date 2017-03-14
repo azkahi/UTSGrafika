@@ -668,6 +668,31 @@ void initMonster(int posX, int posY, PolyLineArray* monster){
 	addPolyline(&(*monster), &barrel);
 }
 
+int isHit_Monster(int xshoot, int yshoot, int mode, int length){
+	int x = xshoot, y = yshoot;
+	for(int i=1; i<=length; i++) {
+		if(isPixelColor(x,y, rplayer,gplayer,bplayer,aplayer)) {
+			return 1;
+		}
+		if(mode==1) (y)--;
+		else if(mode==2) (x)++;
+		else if(mode==3) (y)++;
+		else (x)--;
+	}
+	return 0;
+}
+
+void shootMonsterLaser(int xmonster, int ymonster, int orient_monster) {
+	int x = xmonster;
+	int y = ymonster;
+	drawLaser(&x,&y,orient,playerLaserLength);
+	shooted = 1;
+	
+	 if (isHit_Monster(xmonster,ymonster,orient_monster,monsterLaserLength)){
+		 // SHOOTING ACTION HERE
+		 printf("HIT\n");
+	 }	
+}
 
 //----------------------------------PLAYER--------------------------------------------------//
 
