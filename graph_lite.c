@@ -11,8 +11,6 @@
 #include <pthread.h>
 #include <string.h>
 
-#define nMonster 2
-
 int fbfd = 0;                       // Filebuffer Filedescriptor
 struct fb_var_screeninfo vinfo;     // Struct Variable Screeninfo
 struct fb_fix_screeninfo finfo;     // Struct Fixed Screeninfo
@@ -78,8 +76,7 @@ void terminate() {
 static struct termios old, news;
 
 /*Init Termios*/
-void initTermios(int echo) 
-{
+void initTermios(int echo)  {
   tcgetattr(0, &old); /* grab old terminal i/o settings */
   news = old; /* make new settings same as old settings */
   news.c_lflag &= ~ICANON; /* disable buffered i/o */
@@ -108,7 +105,6 @@ char getch(void)
 {
   return getch_(0);
 }
-//=============================================
 
 
 // PROSEDUR RESET LAYAR DAN PEWARNAAN PIXEL----------------------------------------------------------------- //
@@ -633,9 +629,14 @@ void rotatePolylineArray(PolyLineArray* parr, int xr, int yr, double degrees) {
 	}
 }
 
-	//-----PERBATASAN API <-> KODE TUGAS UTS-----/					/-----PERBATASAN API <-> KODE TUGAS UTS-----//
-	//-----PERBATASAN API <-> KODE TUGAS UTS-----/					/-----PERBATASAN API <-> KODE TUGAS UTS-----//
-	//-----PERBATASAN API <-> KODE TUGAS UTS-----/					/-----PERBATASAN API <-> KODE TUGAS UTS-----//
+
+//-----PERBATASAN API <-> KODE TUGAS UTS-----/					/-----PERBATASAN API <-> KODE TUGAS UTS-----//
+//-----PERBATASAN API <-> KODE TUGAS UTS-----/					/-----PERBATASAN API <-> KODE TUGAS UTS-----//
+//-----PERBATASAN API <-> KODE TUGAS UTS-----/					/-----PERBATASAN API <-> KODE TUGAS UTS-----//
+
+
+// --------------------------------------------------------------------------------------------------------- //
+// DEKLARASI VARIABEL GLOBAL ------------------------------------------------------------------------------- //
 
 // Poly Line Array Stage
 PolyLineArray stage;
@@ -653,17 +654,20 @@ int rplayer=255, gplayer=255, bplayer=255, aplayer=0;
 int xshoot, yshoot;	// The point the player will shoot
 int orient = 1;		// 1 = atas, 2 = kanan, 3 = bawah, 4 = kiri
 int player_life = 3;
+int playerMove = 5;
+
+int isLose=0, isWin=0;
 
 // Poly Line Array dari Monster
-PolyLineArray monster1, monster2;
-int monsterCount = 2;
-int xShootMonster[nMonster], yShootMonster[nMonster];
+int nMonster = 0;
+PolyLineArray monsters[100];
+int xShootMonster[100], yShootMonster[100];
 int rmonster=255, gmonster=126, bmonster=0, amonster=0;
 
 
-//----------------------------------PLAYER--------------------------------------------------//
+// --------------------------------------------------------------------------------------------------------- //
+// DEFINISI METODE PERGERAKAN PLAYER DAN PENGGAMBARAN ------------------------------------------------------ //
 
-// Draw player
 void initPlayer(){
 	
 	PolyLine body, moncong, turret;
@@ -686,17 +690,26 @@ void initPlayer(){
 	addPolyline(&player, &turret);
 
 	drawPolylineArrayOutline(&player);
+	
 }
 
 int canPlayerMove(int dist) {
 	
-	int x = xshoot;
-	int y = yshoot;	
 	int i;
+	int x=0, y=0;
 	
 	if(dist > 0) {
 		
+		if(orient==1) (y)-=2;
+		else if(orient==2) (x)+=2;
+		else if(orient==3) (y)+=2;
+		else (x)-=2;
+		
 		if((orient==1)||(orient==3)) {
+			
+			x += (int)(player.arr[0].x[0] + player.arr[0].x[2])/2;
+			y += player.arr[1].y[1];
+			
 			for(i=1; i<=dist; i++) {
 				if(!isPixelColor(x-2,y, rground,gground,bground,aground)) break;
 				if(!isPixelColor(x-1,y, rground,gground,bground,aground)) break;
@@ -708,6 +721,10 @@ int canPlayerMove(int dist) {
 			}
 			
 		} else {
+			
+			x += player.arr[1].x[1]; 
+			y += (int)(player.arr[0].y[0] + player.arr[0].y[2])/2;
+			
 			for(i=1; i<=dist; i++) {
 				if(!isPixelColor(x,y-2, rground,gground,bground,aground)) break;
 				if(!isPixelColor(x,y-1, rground,gground,bground,aground)) break;
@@ -722,14 +739,18 @@ int canPlayerMove(int dist) {
 		
 	} else {
 		
-		if(orient==1) y += 124;
-		else if(orient==2) x -= 124;
-		else if(orient==3) y -= 124;
-		else x += 124;
-		
 		dist = -dist;
 		
+		if(orient==1) (y)+=2;
+		else if(orient==2) (x)-=2;
+		else if(orient==3) (y)-=2;
+		else (x)+=2;
+		
 		if((orient==1)||(orient==3)) {
+			
+			x += (int)(player.arr[0].x[0] + player.arr[0].x[2])/2;
+			y += player.arr[0].y[1];
+				
 			for(i=1; i<=dist; i++) {
 				if(!isPixelColor(x-2,y, rground,gground,bground,aground)) break;
 				if(!isPixelColor(x-1,y, rground,gground,bground,aground)) break;
@@ -741,6 +762,10 @@ int canPlayerMove(int dist) {
 			}
 			
 		} else {
+			
+			x += player.arr[0].x[1];
+			y += (int)(player.arr[0].y[0] + player.arr[0].y[2])/2;
+			
 			for(i=1; i<=dist; i++) {
 				if(!isPixelColor(x,y-2, rground,gground,bground,aground)) break;
 				if(!isPixelColor(x,y-1, rground,gground,bground,aground)) break;
@@ -784,6 +809,10 @@ void rotatePlayer(float degree) {
 	xshoot = round(tempx);
 	yshoot = round(tempy);
 }
+
+
+// --------------------------------------------------------------------------------------------------------- //
+// DEFINISI METODE PENGGAMBARAN LASER ---------------------------------------------------------------------- //
 
 /* Akan mulai mewarnai titik dari *x, *y sepanjang length ke satu arah sesuai mode yang diberikan
  * 1 = atas, 2 = kanan, 3 = bawah, 4 = kiri
@@ -848,12 +877,14 @@ void removePlayerLaser() {
 	shooted = 0;
 }
 
-//----------------------------------Monster--------------------------------------------------//
 
-// Draw monster
-void initMonster(int posX, int posY, PolyLineArray* monster, int n_th){
+// --------------------------------------------------------------------------------------------------------- //
+// DEFINISI METODE PENGGAMBARAN, PENEMBAKAN, DAN HIT COLLISION MONSTER DAN LASERNYA ------------------------ //
+
+void initMonster(int posX, int posY){
+	
 	PolyLine body, head, barrel;
-	initPolyLineArray(&(*monster), 11);
+	initPolyLineArray(&(monsters[nMonster]), 11);
 
 	initPolyline(&body, rmonster, gmonster, bmonster, amonster);
 	boxPolyline(&body, posX - 40, posY - 20 , posX + 40, posY + 20);
@@ -864,12 +895,14 @@ void initMonster(int posX, int posY, PolyLineArray* monster, int n_th){
 	initPolyline(&barrel, rmonster, gmonster, bmonster, amonster);
 	boxPolyline(&barrel, posX - 15, posY - 40, posX + 15, posY);
 
-	addPolyline(&(*monster), &body);
-	addPolyline(&(*monster), &head);
-	addPolyline(&(*monster), &barrel);
+	addPolyline(&(monsters[nMonster]), &body);
+	addPolyline(&(monsters[nMonster]), &head);
+	addPolyline(&(monsters[nMonster]), &barrel);
 
-	xShootMonster[n_th-1] = posX;
-	yShootMonster[n_th-1] = posY-42;
+	xShootMonster[nMonster] = posX;
+	yShootMonster[nMonster] = posY-42;
+	
+	nMonster++;
 }
 
 int isHit_Monster(int xshoot, int yshoot, int mode, int length){
@@ -893,7 +926,6 @@ void shootMonsterLaser(int xmonster, int ymonster, int orient_monster) {
 	
 	 if (isHit_Monster(xmonster,ymonster,orient_monster,monsterLaserLength)){
 		 // SHOOTING ACTION HERE
-		 printf("HIT\n");
 		 player_life--;
 	 }	
 }
@@ -914,25 +946,19 @@ void removeMonsterLaser(int xmonster, int ymonster, int orient_monster) {
 	}
 }
 
-
-// METODE HANDLER THREAD IO--------------------------------------------------------------------------------- //
-
-int isLose;
-
-
-
-void fireMonster(){
-	// while(1) {
-		for (int i=0; i<nMonster;i++){
-			shootMonsterLaser(xShootMonster[i],yShootMonster[i],1);
-		}
-		usleep(100000);
-		for (int i=0; i<nMonster;i++){
-			removeMonsterLaser(xShootMonster[i],yShootMonster[i],1);
-		}
-		//usleep(100000);
-	// }
+void fireMonster() {
+	for (int i=0; i<nMonster;i++){
+		shootMonsterLaser(xShootMonster[i],yShootMonster[i],1);
+	}
+	usleep(100000);
+	for (int i=0; i<nMonster;i++){
+		removeMonsterLaser(xShootMonster[i],yShootMonster[i],1);
+	}
 }
+
+
+// --------------------------------------------------------------------------------------------------------- //
+// DEFINISI METODE PENGGAMBARAN STAGE ---------------------------------------------------------------------- //
 
 void initStage() {	
 	int firex, firey = 0;
@@ -978,10 +1004,13 @@ void initStage() {
     
     drawPolylineArrayOutline(&stage);
     scalePolylineArray(&stage, xmiddle, ymiddle, 3);
-    movePolylineArray(&stage, 1900,-180);
+    movePolylineArray(&stage, 2200,-75);
     
 }
 
+
+// --------------------------------------------------------------------------------------------------------- //
+// DEFINISI METODE PENGGAMBARAN, ANIMASI, DAN PERGERAKAN WINDMILLS ----------------------------------------- //
 
 PolyLineArray windmills;
 int rbase=0, gbase=0, bbase=255, abase=0;
@@ -1015,9 +1044,8 @@ void addWindmill(int x, int y, float scale) {
 
 void initWindmill() {
 	initPolyLineArray(&windmills, 50);
-	addWindmill(550, 250, 1);
-	addWindmill(750, 750, 1);
-	addWindmill(2200, 600, 1);
+	addWindmill(xmiddle, ymiddle - 250, 0.5);
+	addWindmill(xmiddle + 500, ymiddle + 500, 0.5);
 	drawPolylineArrayOutline(&windmills);
 }
 
@@ -1102,10 +1130,14 @@ void moveWindmills(int dx, int dy) {
 	int i;
 	for(i=0; i<windmills.PolyCount; i+=2) {
 		deletePolyline(&(windmills.arr[i+1]));
+		drawPolylineOutline(&(windmills.arr[i]));
+		fillPolyline(&(windmills.arr[i]), rbasecolor,gbasecolor,bbasecolor,abasecolor);
 		deletePolyline(&(windmills.arr[i]));
 		
 		movePolylineNoDelete(&(windmills.arr[i]), dx,dy);
+		fillPolyline(&(windmills.arr[i]), rbasecolor,gbasecolor,bbasecolor,abasecolor);
 		movePolylineNoDelete(&(windmills.arr[i+1]), dx,dy);
+		fillPolyline(&(windmills.arr[i+1]), rbladecolor,gbladecolor,bbladecolor,abladecolor);
 	}
 }
 
@@ -1113,12 +1145,20 @@ void scaleWindmills(int xa, int ya, float ratio) {
 	int i;
 	for(i=0; i<windmills.PolyCount; i+=2) {
 		deletePolyline(&(windmills.arr[i+1]));
+		drawPolylineOutline(&(windmills.arr[i]));
+		fillPolyline(&(windmills.arr[i]), rbasecolor,gbasecolor,bbasecolor,abasecolor);
 		deletePolyline(&(windmills.arr[i]));
 		
 		scalePolylineNoDelete(&(windmills.arr[i]), xa,ya, ratio);
+		fillPolyline(&(windmills.arr[i]), rbasecolor,gbasecolor,bbasecolor,abasecolor);
 		scalePolylineNoDelete(&(windmills.arr[i+1]), xa,ya, ratio);
+		fillPolyline(&(windmills.arr[i+1]), rbladecolor,gbladecolor,bbladecolor,abladecolor);
 	}
 }
+
+
+// --------------------------------------------------------------------------------------------------------- //
+// DEFINISI METODE SCALING DAN PERGERAKAN SEMUA BENDA DI LAYAR --------------------------------------------- //
 
 void scalePlayer(int xa, int ya, float ratio) {
 	scalePolylineArray(&player, xa, ya, ratio);
@@ -1126,31 +1166,71 @@ void scalePlayer(int xa, int ya, float ratio) {
 	double tempx;
 	double tempy;
 
-	tempx = xa + ((xshoot - xa) * ratio);
-	tempy = ya + ((yshoot - ya) * ratio);
-	xshoot = round(tempx);
-	yshoot = round(tempy);
+	int xdepan, ydepan;
+	if((orient == 1)||(orient == 3)) {
+		xshoot = (int)(player.arr[0].x[0] + player.arr[0].x[2])/2;
+		yshoot = player.arr[1].y[1];
+	
+	} else {
+		xshoot = player.arr[1].x[1]; 
+		yshoot = (int)(player.arr[0].y[0] + player.arr[0].y[2])/2;
+	}
+	if(orient==1) (yshoot)-=2;
+	else if(orient==2) (xshoot)+=2;
+	else if(orient==3) (yshoot)+=2;
+	else (xshoot)-=2;
+	
+	playerLaserLength = (int) playerLaserLength * ratio;
 }
 
-void scaleMonster(int xa, int ya, float ratio) {
-	scalePolylineArray(&monster1, xa, ya, ratio);
-	scalePolylineArray(&monster2, xa, ya, ratio);
-	
+void scaleMonster(int xa, int ya, float ratio) {	
 	double tempx;
 	double tempy;
 	int i;
 	
-	for (i = 0; i < monsterCount; i++){
+	for (i = 0; i < nMonster; i++){
+		scalePolylineArray(&(monsters[i]), xa, ya, ratio);
+		
 		tempx = xa + ((xShootMonster[i] - xa) * ratio);
 		tempy = ya + ((yShootMonster[i] - ya) * ratio);
 		xShootMonster[i] = round(tempx);
 		yShootMonster[i] = round(tempy);
 	}
+	
+	monsterLaserLength = (int) monsterLaserLength * ratio;
 }
 
+void moveShootMonster(int dx, int dy){
+	for (int i=0; i<nMonster;i++){
+		xShootMonster[i]+=dx;
+		yShootMonster[i]+=dy;
+	}
+}
+
+/* Akan menggerakan SEMUA Model sesuai dx dan dy */
+void moveAll(int dx, int dy) {
+	movePolylineArray(&player, dx, dy);
+	movePolylineArray(&stage, dx, dy);
+	
+	int i;
+	for (i = 0; i < nMonster; i++){
+		movePolylineArray(&(monsters[i]), dx, dy);
+	}
+	
+	moveWindmills(dx, dy);
+	moveShootMonster(dx,dy);
+}
+
+
+// --------------------------------------------------------------------------------------------------------- //
+// MAIN PROGRAM INITIALIZING AND GAME ITERATION ------------------------------------------------------------ //
+
 void processPlayerInput() {
+	
 	int counter = 50;
-	while (1) {
+	int countZoom = 0;
+	
+	while ((!isLose) && (!isWin)) {
 
 		if (player_life <= 0){
 			isLose = 1;
@@ -1163,16 +1243,18 @@ void processPlayerInput() {
 		} 
 		
 		char X = getch();
-		if ((X == 'i') || (X == 'I')) { // Zoom in
+		if (((X == 'i') || (X == 'I')) && (countZoom < 2)) { // Zoom in
 			scalePolylineArray(&stage, xmiddle, ymiddle, 1.1);
 			scalePlayer(xmiddle, ymiddle, 1.1);
 			scaleMonster(xmiddle, ymiddle, 1.1);
 			scaleWindmills(xmiddle, ymiddle, 1.1);
-		} else if ((X == 'o') || (X == 'O')) { // Zoom out
+			countZoom++;
+		} else if (((X == 'o') || (X == 'O')) && (countZoom > -2)) { // Zoom out
 			scalePolylineArray(&stage, xmiddle, ymiddle, 1/1.1);
 			scalePlayer(xmiddle, ymiddle, 1/1.1);
 			scaleMonster(xmiddle, ymiddle, 1/1.1);
 			scaleWindmills(xmiddle, ymiddle, 1/1.1);
+			countZoom--;
 		} else if ((X == 'x') || (X == 'X')) { // Shoot laser
 			shootPlayerLaser();
 			
@@ -1190,7 +1272,7 @@ void processPlayerInput() {
 			
 			if(move != 0) {
 			
-				if(canPlayerMove(move*5)) movePlayer(move*5);
+				if(canPlayerMove(move*playerMove)) movePlayer(move*playerMove);
 			
 			}
 			
@@ -1202,45 +1284,29 @@ void processPlayerInput() {
 			}
 		}
 		
-		//drawRotateWindmills();
 		counter--;
+		if((counter%5)==0) {
+			drawRotateWindmills();
+		}
 		if (counter == 0){
 			fireMonster();
 			counter = 50;
 		}
 		drawScreenBorder();	
-		
-		// Kondisi Kalah
+
 	}
 }
 
-void moveShootMonster(int dx, int dy){
-	for (int i=0; i<nMonster;i++){
-		xShootMonster[i]+=dx;
-		yShootMonster[i]+=dy;
-	}
-}
-
-/* Akan menggerakan SEMUA Model sesuai dx dan dy */
-void moveAll(int dx, int dy) {
-	movePolylineArray(&player, dx, dy);
-	movePolylineArray(&stage, dx, dy);
-	movePolylineArray(&monster1, dx, dy);
-	movePolylineArray(&monster2, dx, dy);
-	moveWindmills(dx, dy);
-	moveShootMonster(dx,dy);
-}
-
-//MAIN PROGRAM
 int main(int argc, char *argv[]) {
+	
     initScreen();
     clearScreen();
     initPlayer();
     initStage();
 
     // jumlah monster (nMonster) masih hardcoded, mungkin ada yang bisa ngubah jadi variable
- 	initMonster(xmiddle + 200, ymiddle + 50, &monster1,1);
- 	initMonster(xmiddle - 200, ymiddle - 100, &monster2,2);
+ 	initMonster(xmiddle + 250, ymiddle + 200);
+ 	initMonster(xmiddle - 500, ymiddle + 200);
 
 	drawPolylineArrayOutline(&player);
 	drawPolylineArrayOutline(&stage);
@@ -1254,8 +1320,9 @@ int main(int argc, char *argv[]) {
 	clearScreen();
 	
 	if (isLose){
-		printf("GAME OVER\n");
+		printf("GAME OVER, YOU LOSE\n");
 	}
+	
     return 0;
 }
 
