@@ -630,25 +630,25 @@ void rotatePolylineArray(PolyLineArray* parr, int xr, int yr, double degrees) {
 	}
 }
 
-//-----PERBATASAN API <-> KODE TUGAS UTS-----//-----PERBATASAN API <-> KODE TUGAS UTS-----//
-//-----PERBATASAN API <-> KODE TUGAS UTS-----//-----PERBATASAN API <-> KODE TUGAS UTS-----//
-//-----PERBATASAN API <-> KODE TUGAS UTS-----//-----PERBATASAN API <-> KODE TUGAS UTS-----//
-
-
-// Poly Line Array Player
-PolyLineArray player;
-int rplayer=255, gplayer=255, bplayer=255, aplayer=0;
-int xshoot, yshoot;	// The point the player will shoot
-int orient = 1;		// 1 = atas, 2 = kanan, 3 = bawah, 4 = kiri
+	//-----PERBATASAN API <-> KODE TUGAS UTS-----/					/-----PERBATASAN API <-> KODE TUGAS UTS-----//
+	//-----PERBATASAN API <-> KODE TUGAS UTS-----/					/-----PERBATASAN API <-> KODE TUGAS UTS-----//
+	//-----PERBATASAN API <-> KODE TUGAS UTS-----/					/-----PERBATASAN API <-> KODE TUGAS UTS-----//
 
 // Poly Line Array Stage
 PolyLineArray stage;
 int rstage=0, gstage=0, bstage=255, astage=0;
 
+// Laser Config
+int rlaser=255, glaser=0, blaser=0, alaser=0;
+int shooted = 0;
+int playerLaserLength = 100;
+int monsterLaserLength = 200;
+
+//----------------------------------Monster--------------------------------------------------//
+
 // Poly Line Array dari Monster
 PolyLineArray monster1, monster2;
 int rmonster=255, gmonster=126, bmonster=0, amonster=0;
-
 // Draw monster
 void initMonster(int posX, int posY, PolyLineArray* monster){
 	PolyLine body, head, barrel;
@@ -669,6 +669,13 @@ void initMonster(int posX, int posY, PolyLineArray* monster){
 }
 
 
+//----------------------------------PLAYER--------------------------------------------------//
+
+// Poly Line Array Player
+PolyLineArray player;
+int rplayer=255, gplayer=255, bplayer=255, aplayer=0;
+int xshoot, yshoot;	// The point the player will shoot
+int orient = 1;		// 1 = atas, 2 = kanan, 3 = bawah, 4 = kiri
 // Draw player
 void initPlayer(){
 	
@@ -791,13 +798,6 @@ void rotatePlayer(float degree) {
 	yshoot = round(tempy);
 }
 
-
-// Warna laser
-int rlaser=255, glaser=0, blaser=0, alaser=0;
-int shooted = 0;
-int playerLaserLength = 100;
-int monsterLaserLength = 200;
-
 /* Akan mulai mewarnai titik dari *x, *y sepanjang length ke satu arah sesuai mode yang diberikan
  * 1 = atas, 2 = kanan, 3 = bawah, 4 = kiri
  * Apabila menemui titik yang tidak berwarna background akan berhenti. Nilai x dan y adalah nilai
@@ -816,7 +816,7 @@ void drawLaser(int* x, int* y, int mode, int length) {
 	}
 }
 
-int isHitMonster(int xshoot, int yshoot, int mode, int length){
+int isHit_Player(int xshoot, int yshoot, int mode, int length){
 	int x = xshoot, y = yshoot;
 	for(int i=1; i<=length; i++) {
 		if(isPixelColor(x,y, rmonster,gmonster,bmonster,amonster)) {
@@ -829,19 +829,7 @@ int isHitMonster(int xshoot, int yshoot, int mode, int length){
 	}
 	return 0;
 }
-int isHitPlayer(int xshoot, int yshoot, int mode, int length){
-	int x = xshoot, y = yshoot;
-	for(int i=1; i<=length; i++) {
-		if(isPixelColor(x,y, rplayer,gplayer,bplayer,aplayer)) {
-			return 1;
-		}
-		if(mode==1) (y)--;
-		else if(mode==2) (x)++;
-		else if(mode==3) (y)++;
-		else (x)--;
-	}
-	return 0;
-}
+
 
 void shootPlayerLaser() {
 	int x = xshoot;
@@ -849,7 +837,7 @@ void shootPlayerLaser() {
 	drawLaser(&x,&y,orient,playerLaserLength);
 	shooted = 1;
 	
-	 if (isHitMonster(xshoot,yshoot,orient,playerLaserLength)){
+	 if (isHit_Player(xshoot,yshoot,orient,playerLaserLength)){
 		 // SHOOTING ACTION HERE
 		 printf("HIT\n");
 	 }
@@ -933,20 +921,20 @@ void processPlayerInput() {
 void *keylistener(void *null) {
     while (1) {
 		processPlayerInput();
-		
     }
 }
 
-void *windmillspinner() {
+void *windmillspinner(void *null) {
     while (1) {
+		usleep(100000);
 		drawRotateWindmills();
     }
 }
 
-void *fireMonster(){
+void *fireMonster(void *null){
 	while(1) {
 		usleep(100000);
-		shootPlayerLaser();
+		// shootPlayerLaser();
 	}
 }
 
@@ -1129,15 +1117,15 @@ int main(int argc, char *argv[]) {
     initPlayer();
     initWindmill();
 	
-    pthread_t listener, monsterRoutine, windmill;
+    pthread_t listener, monsterRoutine, thr_windmill;
+
 	pthread_create(&listener, NULL, keylistener, NULL);
+	// pthread_create(&thr_windmill, NULL, windmillspinner, NULL);
+    // pthread_create(&monsterRoutine, NULL, fireMonster, NULL);
+
 	pthread_join(listener, NULL);
-	
-	pthread_create(&windmill, NULL, windmillspinner, NULL);
-	pthread_join(windmill, NULL);
-	
-    pthread_create(&monsterRoutine, NULL, fireMonster, NULL);
-	pthread_join(monsterRoutine, NULL);
+	// pthread_join(thr_windmill, NULL);
+	// pthread_join(monsterRoutine, NULL);
 	
 	clearScreen();    
     terminate();
