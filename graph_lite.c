@@ -226,14 +226,17 @@ int getClipCode(int x, int y) {
 	int xmin = borderUp-1, xmax = vinfo.xres-borderDown;
 	int ymin = borderLeft-1, ymax = vinfo.yres-borderRight;
 
-	if (x < xmin)           // to the left of clip window 0001
+	if (x < xmin) {           // to the left of clip window 0001
 		code |= 1;
-	else if (x > xmax)      // to the right of clip window 0010
+	} else if (x > xmax) {     // to the right of clip window 0010
 		code |= 2;
-	if (y < ymin)           // below the clip window 0100
+	} 
+	
+	if (y < ymin) {          // below the clip window 0100
 		code |= 4;
-	else if (y > ymax)      // above the clip window 1000
+	} else if (y > ymax) {     // above the clip window 1000
 		code |= 8;
+	}
 
 	return code;
 }
@@ -327,7 +330,7 @@ int drawLine(Line* l) {
 		}
 
 		// Repeat printing the next pixel until the line is painted
-		while(x <= (*l).x2) {
+		while (x <= (*l).x2) {
 
 			// Draw the next pixel
 			if (!isOverflow(x,y)) {
@@ -339,11 +342,13 @@ int drawLine(Line* l) {
 				p = p + 2*dy;
 			} else {
 				p = p + 2*(dy-dx);
-				if((*l).y2 - (*l).y1 > 0) y++;
-				else y--;
+				if ((*l).y2 - (*l).y1 > 0) {
+					++y;
+				} else {
+					--y;
+				}
 			}
-			x++;
-
+			++x;
 		}
 
 	// If the absolute gradien is more than 1
@@ -372,17 +377,17 @@ int drawLine(Line* l) {
 				p = p + 2*dx;
 			} else {
 				p = p + 2*(dx-dy);
-				if((*l).x2 - (*l).x1 > 0) x++;
-				else x--;
+				if ((*l).x2 - (*l).x1 > 0) {
+					++x;
+				} else {
+					--x;
+				}
 			}
-			y++;
-
+			++y;
 		}
-
 	}
 
 	return col;
-
 }
 
 // METODE PEWARNAAN UMUM------------------------------------------------------------------------------------ //
@@ -506,8 +511,7 @@ void movePolyline(PolyLine* p, int dx, int dy) {
 	(*p).xp = tempx;
 	(*p).yp = tempy;
 
-	int i;
-	for(i=0; i<(*p).PointCount; i++) {
+	for(int i = 0; i < (*p).PointCount; ++i) {
 		tempx = (*p).x[i] + dx;
 		tempy = (*p).y[i] + dy;
 		(*p).x[i] = tempx;
@@ -529,8 +533,7 @@ void rotatePolyline(PolyLine* p, int xr, int yr, double degrees) {
 	(*p).xp = round(tempx);
 	(*p).yp = round(tempy);
 
-	int i;
-	for(i=0; i<(*p).PointCount; i++) {
+	for(int i = 0; i < (*p).PointCount; ++i) {
 		tempx = xr + (((*p).x[i] - xr) * cosr) - (((*p).y[i] - yr) * sinr);
 		tempy = yr + (((*p).x[i] - xr) * sinr) + (((*p).y[i] - yr) * cosr);
 		(*p).x[i] = round(tempx);
@@ -551,8 +554,7 @@ void scalePolyline(PolyLine* p, int xa, int ya, float ratio) {
 	(*p).xp = round(tempx);
 	(*p).yp = round(tempy);
 
-	int i;
-	for(i=0; i<(*p).PointCount; i++) {
+	for(int i = 0; i < (*p).PointCount; ++i) {
 		tempx = xa + (((*p).x[i] - xa) * ratio);
 		tempy = ya + (((*p).y[i] - ya) * ratio);
 		(*p).x[i] = round(tempx);
@@ -587,8 +589,7 @@ void addPolyline(PolyLineArray* parr, PolyLine* p) {
 	(*temp).b = (*p).b;
 	(*temp).a = (*p).a;
 
-	int i;
-	for(i=0; i<(*p).PointCount; i++) {
+	for(int i = 0; i < (*p).PointCount; ++i) {
 		(*temp).x[i] = (*p).x[i];
 		(*temp).y[i] = (*p).y[i];
 	}
@@ -598,36 +599,31 @@ void addPolyline(PolyLineArray* parr, PolyLine* p) {
 }
 
 void drawPolylineArrayOutline(PolyLineArray* parr) {
-	int i;
-	for(i=0; i<(*parr).PolyCount;i++) {
+	for(int i = 0; i < (*parr).PolyCount; ++i) {
 		drawPolylineOutline(&((*parr).arr[i]));
 	}
 }
 
 void movePolylineArray(PolyLineArray* parr, int dx, int dy) {
-	int i;
-	for(i=0; i<(*parr).PolyCount;i++) {
+	for(int i = 0; i < (*parr).PolyCount; ++i) {
 		movePolyline(&((*parr).arr[i]), dx, dy);
 	}
 }
 
 void scalePolylineArray(PolyLineArray* parr, int ax, int ay, float scale) {
-	int i;
-	for(i=0; i<(*parr).PolyCount;i++) {
+	for(int i = 0; i < (*parr).PolyCount; ++i) {
 		scalePolyline(&((*parr).arr[i]), ax, ay, scale);
 	}
 }
 
 void colorPolylineArray(PolyLineArray* parr, int r, int g, int b, int a) {
-	int i;
-	for(i=0; i<(*parr).PolyCount;i++) {
+	for(int i = 0; i < (*parr).PolyCount; ++i) {
 		fillPolyline(&((*parr).arr[i]), r,g,b,a);
 	}
 }
 
 void rotatePolylineArray(PolyLineArray* parr, int xr, int yr, double degrees) {
-	int i;
-	for(i=0; i<(*parr).PolyCount;i++) {
+	for(int i = 0; i < (*parr).PolyCount; ++i) {
 		rotatePolyline(&((*parr).arr[i]), xr, yr, degrees);
 	}
 }
