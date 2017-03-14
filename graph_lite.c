@@ -25,6 +25,9 @@ int borderRight = 10;              // The border width, distance from the actual
 int xmiddle;
 int ymiddle;
 
+int xPlayerCounter = 0;
+int yPlayerCounter = 0;
+
 void drawScreenBorder();
 void moveAll(int dx, int dy);
 void drawRotateWindmills();
@@ -787,11 +790,16 @@ int canPlayerMove(int dist) {
  * */
 void movePlayer(int dist) {
 	
-	int x=0, y=0;
-	if(orient==1) y--;
-	else if(orient==2) x++;
-	else if(orient==3) y++;
-	else x--;
+	int x = 0, y = 0;
+	if (orient == 1) {
+		--y;
+	} else if (orient == 2) {
+		++x;
+	} else if (orient == 3) {
+		++y;
+	} else {
+		--x;
+	}
 	
 	movePolylineArray(&player, x*dist, y*dist);
 	moveAll(-x*dist, -y*dist);
@@ -1253,6 +1261,13 @@ void processPlayerInput() {
 			break;
 		}
 
+		printf("%d\t%d\n", xPlayerCounter, yPlayerCounter);
+
+		if ((xPlayerCounter >= 1215) && (yPlayerCounter >= -100) && (yPlayerCounter <= -90)) {
+			isWin = 1;
+			break;
+		}
+
 		if(shooted == 1) {	
 			usleep(100000);
 			removePlayerLaser();
@@ -1275,21 +1290,54 @@ void processPlayerInput() {
 			shootPlayerLaser();
 			
 		} else {
-			int rotate=0, move=0;
+			int rotate = 0, move = 0;
 			
 			// Right arrow
-			if (X == 'a') rotate = -1;
+			if (X == 'a') {
+				rotate = -1;
+			}
 			// Left arrow
-			else if (X == 'd') rotate = 1;
+			else if (X == 'd') {
+				rotate = 1;
+			}
 			// Up arrow
-			else if (X == 's') move = -1;
+			else if (X == 's') {
+				move = -1;
+			}
 			// Down arrow
-			else if (X == 'w') move = 1;
+			else if (X == 'w') {
+				move = 1;
+			}
 			
 			if(move != 0) {
-			
-				if(canPlayerMove(move*playerMove)) movePlayer(move*playerMove);
-			
+				if(canPlayerMove(move*playerMove)) {
+					movePlayer(move*playerMove);
+					if (orient == 1) {
+						if (move == 1) {
+							++yPlayerCounter;
+						} else if (move == -1) {
+							--yPlayerCounter;
+						}
+					} else if (orient == 2) {
+						if (move == 1) {
+							++xPlayerCounter;
+						} else if (move == -1) {
+							--xPlayerCounter;
+						}
+					} else if (orient == 3) {
+						if (move == 1) {
+							--yPlayerCounter;
+						} else if (move == -1) {
+							++yPlayerCounter;
+						}
+					} else if (orient == 4) {
+						if (move == 1) {
+							--xPlayerCounter;
+						} else if (move == -1) {
+							++xPlayerCounter;
+						}
+					}
+				}
 			}
 			
 			if(rotate != 0) {
@@ -1337,6 +1385,10 @@ int main(int argc, char *argv[]) {
 	
 	if (isLose){
 		printf("GAME OVER, YOU LOSE\n");
+	}
+
+	if (isWin) {
+		printf("YOU WIN!\n");
 	}
 	
     return 0;
