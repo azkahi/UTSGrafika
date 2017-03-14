@@ -1357,7 +1357,7 @@ void moveAll(int dx, int dy) {
 
 void processPlayerInput() {
 	
-	int counter = 50;
+	int counter = 35;
 	int countZoom = 0;
 
 	double xPlayerCounter = 0.f;
@@ -1488,22 +1488,36 @@ int main(int argc, char *argv[]) {
     initPlayer();
     initStage();
 
-    // jumlah monster (nMonster) masih hardcoded, mungkin ada yang bisa ngubah jadi variable
- 	initMonster(xmiddle + 250, ymiddle + 200,1);
- 	initMonster(xmiddle - 500, ymiddle, 2);
+	//BORDER MONSTER
+	initMonster(xmiddle - 300, ymiddle, 2);
+ 	initMonster(xmiddle + 1050, ymiddle -1200, 3);
+ 	initMonster(xmiddle, ymiddle + 1050, 2);
+ 	initMonster(xmiddle + 760, ymiddle + 1600, 1);
+ 	initMonster(xmiddle + 1850, ymiddle + 1600, 1);
+ 	initMonster(xmiddle + 2280, ymiddle + 1600, 1);
+ 	initMonster(xmiddle + 3350, ymiddle + 1600, 1);
+ 	initMonster(xmiddle + 4330, ymiddle + 1600, 1);
+ 	initMonster(xmiddle + 3350, ymiddle - 1300, 3);
+ 	initMonster(xmiddle + 3800, ymiddle - 1300, 3);
+ 	initMonster(xmiddle + 4540, ymiddle - 1500, 3);
+ 	initMonster(xmiddle + 4000, ymiddle - 1400, 2);
+ 
+	//ARENA MONSTER
+	initMonster(xmiddle + 270, ymiddle + 220,1);
+	initMonster(xmiddle + 2720, ymiddle - 570, 1);
+	initMonster(xmiddle + 2300, ymiddle - 720, 3);
+	initMonster(xmiddle + 2300, ymiddle + 600, 4);
+	initMonster(xmiddle + 2900, ymiddle + 800, 1);
+	initMonster(xmiddle + 3350, ymiddle + 500, 3);
+	initMonster(xmiddle + 3600, ymiddle + 280, 1);
+	initMonster(xmiddle + 3600, ymiddle + -220, 3);
+	initMonster(xmiddle + 4000, ymiddle + 280, 1);
+	initMonster(xmiddle + 4000, ymiddle + -220, 3);
+	initMonster(xmiddle + 4400, ymiddle + 280, 1);
+	initMonster(xmiddle + 4400, ymiddle + -220, 3);
+	initMonster(xmiddle + 4280, ymiddle + 900, 2);
 
- 	initMonster(xmiddle + 2450, ymiddle + 2400, 1);
- 	initMonster(xmiddle + 3520, ymiddle + 2600, 1);
- 	initMonster(xmiddle + 3945, ymiddle + 2400, 1);
-	initMonster(xmiddle + 5050, ymiddle + 2600, 1);
-	initMonster(xmiddle + 6000, ymiddle + 2400, 1);
-	initMonster(xmiddle + 6100, ymiddle + 2400, 1);
 
-	initMonster(xmiddle + 2720, ymiddle - 550, 3);
-	initMonster(xmiddle + 5050, ymiddle - 550, 3);
-	initMonster(xmiddle + 5500, ymiddle - 900, 3);
-	initMonster(xmiddle + 6200, ymiddle - 900, 3);
- 	
 	drawPolylineArrayOutline(&player);
 	drawPolylineArrayOutline(&stage);
     
