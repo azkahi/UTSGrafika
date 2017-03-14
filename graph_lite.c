@@ -11,6 +11,8 @@
 #include <pthread.h>
 #include <string.h>
 
+#define nMonster 2
+
 int fbfd = 0;                       // Filebuffer Filedescriptor
 struct fb_var_screeninfo vinfo;     // Struct Variable Screeninfo
 struct fb_fix_screeninfo finfo;     // Struct Fixed Screeninfo
@@ -650,11 +652,12 @@ PolyLineArray player;
 int rplayer=255, gplayer=255, bplayer=255, aplayer=0;
 int xshoot, yshoot;	// The point the player will shoot
 int orient = 1;		// 1 = atas, 2 = kanan, 3 = bawah, 4 = kiri
+int player_life = 3;
 
 // Poly Line Array dari Monster
 PolyLineArray monster1, monster2;
-int nMonster = 2;
-int xShootMonster[2], yShootMonster[2];
+
+int xShootMonster[nMonster], yShootMonster[nMonster];
 int rmonster=255, gmonster=126, bmonster=0, amonster=0;
 
 
@@ -892,6 +895,7 @@ void shootMonsterLaser(int xmonster, int ymonster, int orient_monster) {
 	 if (isHit_Monster(xmonster,ymonster,orient_monster,monsterLaserLength)){
 		 // SHOOTING ACTION HERE
 		 printf("HIT\n");
+		 player_life--;
 	 }	
 }
 void removeMonsterLaser(int xmonster, int ymonster, int orient_monster) {
@@ -913,8 +917,16 @@ void removeMonsterLaser(int xmonster, int ymonster, int orient_monster) {
 
 // METODE HANDLER THREAD IO--------------------------------------------------------------------------------- //
 
+int isLose;
+
 void processPlayerInput() {
 	while (1) {
+
+		if (player_life <= 0){
+			isLose = 1;
+			break;
+		}
+
 		if(shooted == 1) {	
 			usleep(100000);
 			removePlayerLaser();
@@ -963,6 +975,7 @@ void processPlayerInput() {
 		fireMonster();
 		drawScreenBorder();	
 		
+		// Kondisi Kalah
 	}
 }
 
@@ -1169,6 +1182,8 @@ int main(int argc, char *argv[]) {
     clearScreen();
     initPlayer();
     initStage();
+
+    // jumlah monster (nMonster) masih hardcoded, mungkin ada yang bisa ngubah jadi variable
  	initMonster(xmiddle + 200, ymiddle + 50, &monster1,1);
  	initMonster(xmiddle - 200, ymiddle - 100, &monster2,2);
 
@@ -1191,8 +1206,12 @@ int main(int argc, char *argv[]) {
 	// // pthread_join(thr_windmill, NULL);
 	// // pthread_join(monsterRoutine, NULL);
 	
-	clearScreen();    
-    terminate();
+	clearScreen();
+	// terminate();
+
+	if (isLose){
+		printf("GAME OVER\n");
+	}
     return 0;
 }
 
