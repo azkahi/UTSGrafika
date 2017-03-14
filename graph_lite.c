@@ -25,9 +25,6 @@ int borderRight = 10;              // The border width, distance from the actual
 int xmiddle;
 int ymiddle;
 
-int xPlayerCounter = 0;
-int yPlayerCounter = 0;
-
 void drawScreenBorder();
 void moveAll(int dx, int dy);
 void drawRotateWindmills();
@@ -1362,6 +1359,10 @@ void processPlayerInput() {
 	
 	int counter = 50;
 	int countZoom = 0;
+
+	double xPlayerCounter = 0.f;
+	double yPlayerCounter = 0.f;
+	double xyPlayerAdder = 1.0;
 	
 	while ((!isLose) && (!isWin)) {
 
@@ -1370,12 +1371,14 @@ void processPlayerInput() {
 			break;
 		}
 
-		if ((xPlayerCounter >= 1215) && (yPlayerCounter >= -100) && (yPlayerCounter <= -90)) {
+		//printf("\t%02.2lf\t\t%02.2lf\n", xPlayerCounter, yPlayerCounter);
+
+		if ((xPlayerCounter >= 1215.0) && (yPlayerCounter >= -100.0) && (yPlayerCounter <= -90.0)) {
 			isWin = 1;
 			break;
 		}
 
-		if(shooted == 1) {	
+		if (shooted == 1) {	
 			usleep(100000);
 			removePlayerLaser();
 		} 
@@ -1387,12 +1390,14 @@ void processPlayerInput() {
 			scaleMonster(xmiddle, ymiddle, 1.1);
 			scaleWindmills(xmiddle, ymiddle, 1.1);
 			countZoom++;
+			xyPlayerAdder /= 1.1;
 		} else if (((X == 'o') || (X == 'O')) && (countZoom > -2)) { // Zoom out
 			scalePolylineArray(&stage, xmiddle, ymiddle, 1/1.1);
 			scalePlayer(xmiddle, ymiddle, 1/1.1);
 			scaleMonster(xmiddle, ymiddle, 1/1.1);
 			scaleWindmills(xmiddle, ymiddle, 1/1.1);
 			countZoom--;
+			xyPlayerAdder *= 1.1;
 		} else if ((X == 'x') || (X == 'X')) { // Shoot laser
 			shootPlayerLaser();
 			
@@ -1422,27 +1427,27 @@ void processPlayerInput() {
 
 					if (orient == 1) {
 						if (move == 1) {
-							++yPlayerCounter;
+							yPlayerCounter += xyPlayerAdder;
 						} else if (move == -1) {
-							--yPlayerCounter;
+							yPlayerCounter -= xyPlayerAdder;;
 						}
 					} else if (orient == 2) {
 						if (move == 1) {
-							++xPlayerCounter;
+							xPlayerCounter += xyPlayerAdder;;
 						} else if (move == -1) {
-							--xPlayerCounter;
+							xPlayerCounter -= xyPlayerAdder;;
 						}
 					} else if (orient == 3) {
 						if (move == 1) {
-							--yPlayerCounter;
+							yPlayerCounter -= xyPlayerAdder;;
 						} else if (move == -1) {
-							++yPlayerCounter;
+							yPlayerCounter += xyPlayerAdder;;
 						}
 					} else if (orient == 4) {
 						if (move == 1) {
-							--xPlayerCounter;
+							xPlayerCounter -= xyPlayerAdder;;
 						} else if (move == -1) {
-							++xPlayerCounter;
+							xPlayerCounter += xyPlayerAdder;;
 						}
 					}
 
@@ -1466,7 +1471,7 @@ void processPlayerInput() {
 		if((counter%5)==0) {
 			drawRotateWindmills();
 		}
-		
+
 		if (counter == 0){
 			fireMonster();
 			counter = 50;
