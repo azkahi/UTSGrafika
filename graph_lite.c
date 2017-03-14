@@ -644,63 +644,21 @@ int shooted = 0;
 int playerLaserLength = 100;
 int monsterLaserLength = 200;
 
-//----------------------------------Monster--------------------------------------------------//
-
-// Poly Line Array dari Monster
-PolyLineArray monster1, monster2;
-int rmonster=255, gmonster=126, bmonster=0, amonster=0;
-// Draw monster
-void initMonster(int posX, int posY, PolyLineArray* monster){
-	PolyLine body, head, barrel;
-	initPolyLineArray(&(*monster), 11);
-
-	initPolyline(&body, rmonster, gmonster, bmonster, amonster);
-	boxPolyline(&body, posX - 40, posY - 20 , posX + 40, posY + 20);
-
-	initPolyline(&head, rmonster, gmonster, bmonster, amonster);
-	boxPolyline(&head, posX - 5, posY - 20, posX + 5, posY - 30);
-	
-	initPolyline(&barrel, rmonster, gmonster, bmonster, amonster);
-	boxPolyline(&barrel, posX - 15, posY - 40, posX + 15, posY);
-
-	addPolyline(&(*monster), &body);
-	addPolyline(&(*monster), &head);
-	addPolyline(&(*monster), &barrel);
-}
-
-int isHit_Monster(int xshoot, int yshoot, int mode, int length){
-	int x = xshoot, y = yshoot;
-	for(int i=1; i<=length; i++) {
-		if(isPixelColor(x,y, rplayer,gplayer,bplayer,aplayer)) {
-			return 1;
-		}
-		if(mode==1) (y)--;
-		else if(mode==2) (x)++;
-		else if(mode==3) (y)++;
-		else (x)--;
-	}
-	return 0;
-}
-
-void shootMonsterLaser(int xmonster, int ymonster, int orient_monster) {
-	int x = xmonster;
-	int y = ymonster;
-	drawLaser(&x,&y,orient,playerLaserLength);
-	shooted = 1;
-	
-	 if (isHit_Monster(xmonster,ymonster,orient_monster,monsterLaserLength)){
-		 // SHOOTING ACTION HERE
-		 printf("HIT\n");
-	 }	
-}
-
-//----------------------------------PLAYER--------------------------------------------------//
-
 // Poly Line Array Player
 PolyLineArray player;
 int rplayer=255, gplayer=255, bplayer=255, aplayer=0;
 int xshoot, yshoot;	// The point the player will shoot
 int orient = 1;		// 1 = atas, 2 = kanan, 3 = bawah, 4 = kiri
+
+// Poly Line Array dari Monster
+PolyLineArray monster1, monster2;
+int nMonster = 2;
+int xShootMonster[2], yShootMonster[2];
+int rmonster=255, gmonster=126, bmonster=0, amonster=0;
+
+
+//----------------------------------PLAYER--------------------------------------------------//
+
 // Draw player
 void initPlayer(){
 	
@@ -887,16 +845,79 @@ void removePlayerLaser() {
 	shooted = 0;
 }
 
+//----------------------------------Monster--------------------------------------------------//
+
+// Draw monster
+void initMonster(int posX, int posY, PolyLineArray* monster, int n_th){
+	PolyLine body, head, barrel;
+	initPolyLineArray(&(*monster), 11);
+
+	initPolyline(&body, rmonster, gmonster, bmonster, amonster);
+	boxPolyline(&body, posX - 40, posY - 20 , posX + 40, posY + 20);
+
+	initPolyline(&head, rmonster, gmonster, bmonster, amonster);
+	boxPolyline(&head, posX - 5, posY - 20, posX + 5, posY - 30);
+	
+	initPolyline(&barrel, rmonster, gmonster, bmonster, amonster);
+	boxPolyline(&barrel, posX - 15, posY - 40, posX + 15, posY);
+
+	addPolyline(&(*monster), &body);
+	addPolyline(&(*monster), &head);
+	addPolyline(&(*monster), &barrel);
+
+	xShootMonster[n_th-1] = posX;
+	yShootMonster[n_th-1] = posY;
+}
+
+int isHit_Monster(int xshoot, int yshoot, int mode, int length){
+	int x = xshoot, y = yshoot;
+	for(int i=1; i<=length; i++) {
+		if(isPixelColor(x,y, rplayer,gplayer,bplayer,aplayer)) {
+			return 1;
+		}
+		if(mode==1) (y)--;
+		else if(mode==2) (x)++;
+		else if(mode==3) (y)++;
+		else (x)--;
+	}
+	return 0;
+}
+
+void shootMonsterLaser(int xmonster, int ymonster, int orient_monster) {
+	int x = xmonster;
+	int y = ymonster;
+	drawLaser(&x,&y,orient,playerLaserLength);
+	
+	 if (isHit_Monster(xmonster,ymonster,orient_monster,monsterLaserLength)){
+		 // SHOOTING ACTION HERE
+		 printf("HIT\n");
+	 }	
+}
+void removeMonsterLaser(int xmonster, int ymonster, int orient_monster) {
+	int x = xmonster;
+	int y = ymonster;
+	
+	int i;
+	for(int i=1; i<=monsterLaserLength; i++) {
+		if(isPixelColor(x,y, rlaser,glaser,blaser,alaser)) {
+			plotPixelRGBA(x,y, rground,gground,bground,aground);
+		} else break;
+		if(orient_monster==1) y--;
+		else if(orient_monster==2) x++;
+		else if(orient_monster==3) y++;
+		else x--;
+	}
+}
+
+
 // METODE HANDLER THREAD IO--------------------------------------------------------------------------------- //
 
 void processPlayerInput() {
 	while (1) {
-		if(shooted == 0) {
-			//proses input saja langsung
-		} else {
+		if(shooted == 1) {	
 			usleep(100000);
 			removePlayerLaser();
-		}
+		} 
 		
 		char X = getch();
 		if ((X == 'i') || (X == 'I')) { // Zoom in
@@ -958,8 +979,14 @@ void *windmillspinner(void *null) {
 
 void *fireMonster(void *null){
 	while(1) {
+		for (int i=0; i<nMonster;i++){
+			shootMonsterLaser(xShootMonster[i],yShootMonster[i],1);
+		}
 		usleep(100000);
-		// shootPlayerLaser();
+		for (int i=0; i<nMonster;i++){
+			removeMonsterLaser(xShootMonster[i],yShootMonster[i],1);
+		}
+		usleep(100000);
 	}
 }
 
@@ -1132,8 +1159,8 @@ int main(int argc, char *argv[]) {
     clearScreen();
     initPlayer();
     initStage();
- 	initMonster(xmiddle + 200, ymiddle + 50, &monster1);
- 	initMonster(xmiddle - 200, ymiddle - 100, &monster2);
+ 	initMonster(xmiddle + 200, ymiddle + 50, &monster1,1);
+ 	initMonster(xmiddle - 200, ymiddle - 100, &monster2,2);
 
 	drawPolylineArrayOutline(&player);
 	drawPolylineArrayOutline(&stage);
