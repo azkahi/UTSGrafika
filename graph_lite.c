@@ -28,6 +28,7 @@ int ymiddle;
 void drawScreenBorder();
 void moveAll(int dx, int dy);
 void drawRotateWindmills();
+void fireMonster();
 
 // Warna background layar
 int rground=0, gground=0, bground=0, aground=0;
@@ -886,7 +887,7 @@ int isHit_Monster(int xshoot, int yshoot, int mode, int length){
 void shootMonsterLaser(int xmonster, int ymonster, int orient_monster) {
 	int x = xmonster;
 	int y = ymonster;
-	drawLaser(&x,&y,orient,playerLaserLength);
+	drawLaser(&x,&y,orient_monster,monsterLaserLength);
 	
 	 if (isHit_Monster(xmonster,ymonster,orient_monster,monsterLaserLength)){
 		 // SHOOTING ACTION HERE
@@ -958,27 +959,28 @@ void processPlayerInput() {
 				if(orient == 5) orient = 1;
 			}
 		}
-		
+		drawRotateWindmills();
+		fireMonster();
 		drawScreenBorder();	
 		
 	}
 }
 
-void *keylistener(void *null) {
-    while (1) {
-		processPlayerInput();
-    }
-}
+// void *keylistener(void *null) {
+//     while (1) {
+// 		processPlayerInput();
+//     }
+// }
 
-void *windmillspinner(void *null) {
-    while (1) {
-		usleep(100000);
-		drawRotateWindmills();
-    }
-}
+// void *windmillspinner(void *null) {
+//     while (1) {
+// 		usleep(100000);
+		
+//     }
+// }
 
-void *fireMonster(void *null){
-	while(1) {
+void fireMonster(){
+	// while(1) {
 		for (int i=0; i<nMonster;i++){
 			shootMonsterLaser(xShootMonster[i],yShootMonster[i],1);
 		}
@@ -986,8 +988,8 @@ void *fireMonster(void *null){
 		for (int i=0; i<nMonster;i++){
 			removeMonsterLaser(xShootMonster[i],yShootMonster[i],1);
 		}
-		usleep(100000);
-	}
+		// usleep(100000);
+	// }
 }
 
 void initStage() {	
@@ -1168,16 +1170,18 @@ int main(int argc, char *argv[]) {
     initStage();
     initPlayer();
     initWindmill();
+
+    processPlayerInput();
 	
-    pthread_t listener, monsterRoutine, thr_windmill;
+ //    pthread_t listener, monsterRoutine, thr_windmill;
 
-	pthread_create(&listener, NULL, keylistener, NULL);
-	// pthread_create(&thr_windmill, NULL, windmillspinner, NULL);
-    // pthread_create(&monsterRoutine, NULL, fireMonster, NULL);
+	// pthread_create(&listener, NULL, keylistener, NULL);
+	// // pthread_create(&thr_windmill, NULL, windmillspinner, NULL);
+ //    // pthread_create(&monsterRoutine, NULL, fireMonster, NULL);
 
-	pthread_join(listener, NULL);
-	// pthread_join(thr_windmill, NULL);
-	// pthread_join(monsterRoutine, NULL);
+	// pthread_join(listener, NULL);
+	// // pthread_join(thr_windmill, NULL);
+	// // pthread_join(monsterRoutine, NULL);
 	
 	clearScreen();    
     terminate();
