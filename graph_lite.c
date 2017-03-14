@@ -867,7 +867,7 @@ void initMonster(int posX, int posY, PolyLineArray* monster, int n_th){
 	addPolyline(&(*monster), &barrel);
 
 	xShootMonster[n_th-1] = posX;
-	yShootMonster[n_th-1] = posY;
+	yShootMonster[n_th-1] = posY-42;
 }
 
 int isHit_Monster(int xshoot, int yshoot, int mode, int length){
@@ -1146,6 +1146,13 @@ void moveWindmills(int dx, int dy) {
 	}
 }
 
+void moveShootMonster(int dx, int dy){
+	for (int i=0; i<nMonster;i++){
+		xShootMonster[i]+=dx;
+		yShootMonster[i]+=dy;
+	}
+}
+
 /* Akan menggerakan SEMUA Model sesuai dx dan dy */
 void moveAll(int dx, int dy) {
 	movePolylineArray(&player, dx, dy);
@@ -1153,6 +1160,7 @@ void moveAll(int dx, int dy) {
 	movePolylineArray(&monster1, dx, dy);
 	movePolylineArray(&monster2, dx, dy);
 	moveWindmills(dx, dy);
+	moveShootMonster(dx,dy);
 }
 
 //MAIN PROGRAM
