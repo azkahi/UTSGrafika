@@ -1272,13 +1272,13 @@ void processPlayerInput() {
 		} 
 		
 		char X = getch();
-		if (((X == 'i') || (X == 'I')) && (countZoom < 2)) { // Zoom in
+		if (((X == 'i') || (X == 'I')) && (countZoom < 100)) { // Zoom in
 			scalePolylineArray(&stage, xmiddle, ymiddle, 1.1);
 			scalePlayer(xmiddle, ymiddle, 1.1);
 			scaleMonster(xmiddle, ymiddle, 1.1);
 			scaleWindmills(xmiddle, ymiddle, 1.1);
 			countZoom++;
-		} else if (((X == 'o') || (X == 'O')) && (countZoom > -2)) { // Zoom out
+		} else if (((X == 'o') || (X == 'O')) && (countZoom > -100)) { // Zoom out
 			scalePolylineArray(&stage, xmiddle, ymiddle, 1/1.1);
 			scalePlayer(xmiddle, ymiddle, 1/1.1);
 			scaleMonster(xmiddle, ymiddle, 1/1.1);
@@ -1370,6 +1370,18 @@ int main(int argc, char *argv[]) {
  	initMonster(xmiddle + 250, ymiddle + 200,1);
  	initMonster(xmiddle - 500, ymiddle, 2);
 
+ 	initMonster(xmiddle + 2450, ymiddle + 2400, 1);
+ 	initMonster(xmiddle + 3520, ymiddle + 2600, 1);
+ 	initMonster(xmiddle + 3945, ymiddle + 2400, 1);
+	initMonster(xmiddle + 5050, ymiddle + 2600, 1);
+	initMonster(xmiddle + 6000, ymiddle + 2400, 1);
+	initMonster(xmiddle + 6100, ymiddle + 2400, 1);
+
+	initMonster(xmiddle + 2720, ymiddle - 550, 3);
+	initMonster(xmiddle + 5050, ymiddle - 550, 3);
+	initMonster(xmiddle + 5500, ymiddle - 900, 3);
+	initMonster(xmiddle + 6200, ymiddle - 900, 3);
+ 	
 	drawPolylineArrayOutline(&player);
 	drawPolylineArrayOutline(&stage);
     
