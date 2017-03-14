@@ -693,30 +693,52 @@ void initPlayer(){
 }
 
 int canPlayerMove(int dist) {
-	
 	int i;
-	int x=0, y=0;
+	int x = 0, y = 0;
 	
-	if(dist > 0) {
+	if (dist > 0) {
 		
-		if(orient==1) (y)-=2;
-		else if(orient==2) (x)+=2;
-		else if(orient==3) (y)+=2;
-		else (x)-=2;
+		if (orient == 1) {
+			(y) -= 2;
+		} else if (orient == 2) {
+			(x) += 2;
+		} else if (orient == 3) {
+			(y) += 2;
+		} else {
+			(x) -= 2;
+		}
 		
-		if((orient==1)||(orient==3)) {
+		if ((orient == 1) || (orient == 3)) {
 			
 			x += (int)(player.arr[0].x[0] + player.arr[0].x[2])/2;
 			y += player.arr[1].y[1];
 			
-			for(i=1; i<=dist; i++) {
-				if(!isPixelColor(x-2,y, rground,gground,bground,aground)) break;
-				if(!isPixelColor(x-1,y, rground,gground,bground,aground)) break;
-				if(!isPixelColor(x,y, rground,gground,bground,aground)) break;
-				if(!isPixelColor(x+1,y, rground,gground,bground,aground)) break;
-				if(!isPixelColor(x+2,y, rground,gground,bground,aground)) break;
-				if(orient==1) y--;
-				else y++;
+			for(i = 1; i <= dist; ++i) {
+				if (!isPixelColor(x-2,y, rground,gground,bground,aground)) {
+					break;
+				}
+
+				if (!isPixelColor(x-1,y, rground,gground,bground,aground)) {
+					break;
+				}
+
+				if (!isPixelColor(x,y, rground,gground,bground,aground)) {
+					break;
+				}
+
+				if (!isPixelColor(x+1,y, rground,gground,bground,aground)) {
+					break;
+				}
+
+				if (!isPixelColor(x+2,y, rground,gground,bground,aground)) {
+					break;
+				}
+
+				if (orient == 1) {
+					--y;
+				} else {
+					++y;
+				}
 			}
 			
 		} else {
@@ -724,14 +746,32 @@ int canPlayerMove(int dist) {
 			x += player.arr[1].x[1]; 
 			y += (int)(player.arr[0].y[0] + player.arr[0].y[2])/2;
 			
-			for(i=1; i<=dist; i++) {
-				if(!isPixelColor(x,y-2, rground,gground,bground,aground)) break;
-				if(!isPixelColor(x,y-1, rground,gground,bground,aground)) break;
-				if(!isPixelColor(x,y, rground,gground,bground,aground)) break;
-				if(!isPixelColor(x,y+1, rground,gground,bground,aground)) break;
-				if(!isPixelColor(x,y+2, rground,gground,bground,aground)) break;
-				if(orient==2) x++;
-				else x--;
+			for(i = 1; i <= dist; ++i) {
+				if (!isPixelColor(x,y-2, rground,gground,bground,aground)) {
+					break;
+				}
+				
+				if (!isPixelColor(x,y-1, rground,gground,bground,aground)) {
+					break;
+				}
+
+				if (!isPixelColor(x,y, rground,gground,bground,aground)) {
+					break;
+				}
+
+				if (!isPixelColor(x,y+1, rground,gground,bground,aground)) {
+					break;
+				}
+
+				if (!isPixelColor(x,y+2, rground,gground,bground,aground)) {
+					break;
+				}
+				
+				if (orient == 2) {
+					++x;
+				} else {
+					--x;
+				}
 			}
 			
 		}
@@ -740,24 +780,47 @@ int canPlayerMove(int dist) {
 		
 		dist = -dist;
 		
-		if(orient==1) (y)+=2;
-		else if(orient==2) (x)-=2;
-		else if(orient==3) (y)-=2;
-		else (x)+=2;
+		if (orient == 1) {
+			(y) += 2;
+		} else if (orient == 2) {
+			(x) -= 2;
+		} else if (orient == 3) {
+			(y)-=2;
+		} else {
+			(x)+=2;
+		}
 		
-		if((orient==1)||(orient==3)) {
+		if ((orient == 1) || (orient == 3)) {
 			
 			x += (int)(player.arr[0].x[0] + player.arr[0].x[2])/2;
 			y += player.arr[0].y[1];
 				
-			for(i=1; i<=dist; i++) {
-				if(!isPixelColor(x-2,y, rground,gground,bground,aground)) break;
-				if(!isPixelColor(x-1,y, rground,gground,bground,aground)) break;
-				if(!isPixelColor(x,y, rground,gground,bground,aground)) break;
-				if(!isPixelColor(x+1,y, rground,gground,bground,aground)) break;
-				if(!isPixelColor(x+2,y, rground,gground,bground,aground)) break;
-				if(orient==1) y++;
-				else y--;
+			for(i = 1; i <= dist; ++i) {
+				if (!isPixelColor(x-2,y, rground,gground,bground,aground)) {
+					break;
+				}
+				
+				if (!isPixelColor(x-1,y, rground,gground,bground,aground)) {
+					break;
+				}
+				
+				if (!isPixelColor(x,y, rground,gground,bground,aground)) {
+					break;
+				}
+				
+				if (!isPixelColor(x+1,y, rground,gground,bground,aground)) {
+					break;
+				}
+				
+				if (!isPixelColor(x+2,y, rground,gground,bground,aground)) {
+					break;
+				}
+				
+				if (orient == 1) {
+					++y;
+				} else {
+					--y;
+				}
 			}
 			
 		} else {
@@ -765,21 +828,39 @@ int canPlayerMove(int dist) {
 			x += player.arr[0].x[1];
 			y += (int)(player.arr[0].y[0] + player.arr[0].y[2])/2;
 			
-			for(i=1; i<=dist; i++) {
-				if(!isPixelColor(x,y-2, rground,gground,bground,aground)) break;
-				if(!isPixelColor(x,y-1, rground,gground,bground,aground)) break;
-				if(!isPixelColor(x,y, rground,gground,bground,aground)) break;
-				if(!isPixelColor(x,y+1, rground,gground,bground,aground)) break;
-				if(!isPixelColor(x,y+2, rground,gground,bground,aground)) break;
-				if(orient==2) x--;
-				else x++;
+			for(i = 1; i <= dist; ++i) {
+				if (!isPixelColor(x,y-2, rground,gground,bground,aground)) {
+					break;
+				}
+
+				if (!isPixelColor(x,y-1, rground,gground,bground,aground)) {
+					break;
+				}
+
+				if (!isPixelColor(x,y, rground,gground,bground,aground)) {
+					break;
+				}
+				
+				if (!isPixelColor(x,y+1, rground,gground,bground,aground)) {
+					break;
+				}
+				
+				if (!isPixelColor(x,y+2, rground,gground,bground,aground)) {
+					break;
+				}
+
+				if (orient == 2) {
+					--x;
+				} else {
+					++x;
+				}
 			}
 			
 		}
 	
 	}
 	
-	return i>=dist;	
+	return (i >= dist);	
 }
 
 /* Akan menggerakan model player sesuai orientasi dan distance
