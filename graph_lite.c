@@ -1261,8 +1261,6 @@ void processPlayerInput() {
 			break;
 		}
 
-		printf("%d\t%d\n", xPlayerCounter, yPlayerCounter);
-
 		if ((xPlayerCounter >= 1215) && (yPlayerCounter >= -100) && (yPlayerCounter <= -90)) {
 			isWin = 1;
 			break;
