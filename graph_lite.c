@@ -1296,7 +1296,7 @@ void scalePlayer(int xa, int ya, float ratio) {
 	double tempy;
 
 	int xdepan, ydepan;
-	if((orient == 1)||(orient == 3)) {
+	if ((orient == 1) || (orient == 3)) {
 		xshoot = (int)(player.arr[0].x[0] + player.arr[0].x[2])/2;
 		yshoot = player.arr[1].y[1];
 	
@@ -1304,10 +1304,16 @@ void scalePlayer(int xa, int ya, float ratio) {
 		xshoot = player.arr[1].x[1]; 
 		yshoot = (int)(player.arr[0].y[0] + player.arr[0].y[2])/2;
 	}
-	if(orient==1) (yshoot)-=2;
-	else if(orient==2) (xshoot)+=2;
-	else if(orient==3) (yshoot)+=2;
-	else (xshoot)-=2;
+
+	if (orient == 1) {
+		(yshoot) -= 2;
+	} else if (orient == 2) {
+		(xshoot) += 2;
+	} else if (orient == 3) {
+		(yshoot) += 2;
+	} else {
+		(xshoot) -= 2;
+	}
 	
 	playerLaserLength = (int) playerLaserLength * ratio;
 }
@@ -1315,9 +1321,8 @@ void scalePlayer(int xa, int ya, float ratio) {
 void scaleMonster(int xa, int ya, float ratio) {	
 	double tempx;
 	double tempy;
-	int i;
 	
-	for (i = 0; i < nMonster; i++){
+	for (int i = 0; i < nMonster; ++i){
 		scalePolylineArray(&(monsters[i]), xa, ya, ratio);
 		
 		tempx = xa + ((xShootMonster[i] - xa) * ratio);
@@ -1330,7 +1335,7 @@ void scaleMonster(int xa, int ya, float ratio) {
 }
 
 void moveShootMonster(int dx, int dy){
-	for (int i=0; i<nMonster;i++){
+	for (int i = 0; i < nMonster; ++i){
 		xShootMonster[i]+=dx;
 		yShootMonster[i]+=dy;
 	}
@@ -1341,8 +1346,7 @@ void moveAll(int dx, int dy) {
 	movePolylineArray(&player, dx, dy);
 	movePolylineArray(&stage, dx, dy);
 	
-	int i;
-	for (i = 0; i < nMonster; i++){
+	for (int i = 0; i < nMonster; ++i) {
 		movePolylineArray(&(monsters[i]), dx, dy);
 	}
 	
@@ -1415,6 +1419,7 @@ void processPlayerInput() {
 			if(move != 0) {
 				if(canPlayerMove(move*playerMove)) {
 					movePlayer(move*playerMove);
+
 					if (orient == 1) {
 						if (move == 1) {
 							++yPlayerCounter;
@@ -1440,14 +1445,20 @@ void processPlayerInput() {
 							++xPlayerCounter;
 						}
 					}
+
 				}
 			}
 			
 			if(rotate != 0) {
 				rotatePlayer(rotate*90);
 				orient += rotate;
-				if(orient == 0) orient = 4;
-				if(orient == 5) orient = 1;
+				if (orient == 0) {
+					orient = 4;
+				}
+				
+				if (orient == 5) {
+					orient = 1;
+				}
 			}
 		}
 		
@@ -1455,6 +1466,7 @@ void processPlayerInput() {
 		if((counter%5)==0) {
 			drawRotateWindmills();
 		}
+		
 		if (counter == 0){
 			fireMonster();
 			counter = 50;
