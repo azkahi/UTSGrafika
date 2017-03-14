@@ -1373,7 +1373,7 @@ void processPlayerInput() {
 
 		//printf("\t%02.2lf\t\t%02.2lf\n", xPlayerCounter, yPlayerCounter);
 
-		if ((xPlayerCounter >= 1215.0) && (yPlayerCounter >= -100.0) && (yPlayerCounter <= -90.0)) {
+		if (xPlayerCounter >= 1215.0) {
 			isWin = 1;
 			break;
 		}
