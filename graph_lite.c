@@ -905,28 +905,41 @@ void rotatePlayer(float degree) {
  * titik terakhir yang akan diwarnai sebelum berhenti. 
  * */
 void drawLaser(int* x, int* y, int mode, int length) {
-	int i;
-	for(int i=1; i<=length; i++) {
-		if(isPixelColor(*x,*y, rground,gground,bground,aground)) {
+	for(int i = 1; i <= length; ++i) {
+		if (isPixelColor(*x,*y, rground,gground,bground,aground)) {
 			plotPixelRGBA(*x,*y, rlaser,glaser,blaser,alaser);
-		} else break;
-		if(mode==1) (*y)--;
-		else if(mode==2) (*x)++;
-		else if(mode==3) (*y)++;
-		else (*x)--;
+		} else {
+			break;
+		}
+
+		if (mode == 1) {
+			--(*y);
+		} else if (mode == 2) {
+			++(*x);
+		} else if (mode == 3) {
+			++(*y);
+		} else {
+			--(*x);
+		}
 	}
 }
 
 int isHit_Player(int xshoot, int yshoot, int mode, int length){
 	int x = xshoot, y = yshoot;
-	for(int i=1; i<=length; i++) {
-		if(isPixelColor(x,y, rmonster,gmonster,bmonster,amonster)) {
+	for(int i = 1; i <= length; ++i) {
+		if (isPixelColor(x,y, rmonster,gmonster,bmonster,amonster)) {
 			return 1;
 		}
-		if(mode==1) (y)--;
-		else if(mode==2) (x)++;
-		else if(mode==3) (y)++;
-		else (x)--;
+
+		if (mode == 1) {
+			--(y);
+		} else if (mode == 2) {
+			++(x);
+		} else if (mode == 3) {
+			++(y);
+		} else {
+			--(x);
+		}
 	}
 	return 0;
 }
@@ -948,15 +961,22 @@ void removePlayerLaser() {
 	int x = xshoot;
 	int y = yshoot;
 	
-	int i;
-	for(int i=1; i<=playerLaserLength; i++) {
-		if(isPixelColor(x,y, rlaser,glaser,blaser,alaser)) {
+	for(int i = 1; i <= playerLaserLength; ++i) {
+		if (isPixelColor(x,y, rlaser,glaser,blaser,alaser)) {
 			plotPixelRGBA(x,y, rground,gground,bground,aground);
-		} else break;
-		if(orient==1) y--;
-		else if(orient==2) x++;
-		else if(orient==3) y++;
-		else x--;
+		} else {
+			break;
+		}
+
+		if (orient == 1) {
+			--y;
+		} else if (orient == 2) {
+			++x;
+		} else if (orient == 3) {
+			++y;
+		} else {
+			--x;
+		}
 	}
 	
 	shooted = 0;
@@ -1003,19 +1023,25 @@ void initMonster(int posX, int posY, int orient){
 	
 	orientMonster[nMonster] = orient;
 	
-	nMonster++;
+	++nMonster;
 }
 
 int isHit_Monster(int xshoot, int yshoot, int mode, int length){
 	int x = xshoot, y = yshoot;
-	for(int i=1; i<=length; i++) {
-		if(isPixelColor(x,y, rplayer,gplayer,bplayer,aplayer)) {
+	for(int i = 1; i <= length; ++i) {
+		if (isPixelColor(x,y, rplayer,gplayer,bplayer,aplayer)) {
 			return 1;
 		}
-		if(mode==1) (y)--;
-		else if(mode==2) (x)++;
-		else if(mode==3) (y)++;
-		else (x)--;
+
+		if (mode == 1) {
+			--(y);
+		} else if (mode == 2) {
+			++(x);
+		} else if (mode == 3) {
+			++(y);
+		} else {
+			--(x);
+		}
 	}
 	return 0;
 }
@@ -1027,7 +1053,7 @@ void shootMonsterLaser(int xmonster, int ymonster, int orient_monster) {
 	
 	 if (isHit_Monster(xmonster,ymonster,orient_monster,monsterLaserLength)){
 		 // SHOOTING ACTION HERE
-		 player_life--;
+		 --player_life;
 	 }	
 }
 
@@ -1036,14 +1062,22 @@ void removeMonsterLaser(int xmonster, int ymonster, int orient_monster) {
 	int y = ymonster;
 	
 	int i;
-	for(int i=1; i<=monsterLaserLength; i++) {
-		if(isPixelColor(x,y, rlaser,glaser,blaser,alaser)) {
+	for(int i = 1; i <= monsterLaserLength; ++i) {
+		if (isPixelColor(x,y, rlaser,glaser,blaser,alaser)) {
 			plotPixelRGBA(x,y, rground,gground,bground,aground);
-		} else break;
-		if(orient_monster==1) y--;
-		else if(orient_monster==2) x++;
-		else if(orient_monster==3) y++;
-		else x--;
+		} else {
+			break;
+		}
+		
+		if (orient_monster == 1) {
+			--y;
+		} else if (orient_monster == 2) {
+			++x;
+		} else if (orient_monster == 3) {
+			++y;
+		} else {
+			--x;
+		}
 	}
 }
 
@@ -1162,8 +1196,7 @@ void rotatePolylineWithoutDelete(PolyLine* p, int xr, int yr, double degrees) {
 	(*p).xp = round(tempx);
 	(*p).yp = round(tempy);
 
-	int i;
-	for(i=0; i<(*p).PointCount; i++) {
+	for (int i = 0; i < (*p).PointCount; ++i) {
 		tempx = xr + (((*p).x[i] - xr) * cosr) - (((*p).y[i] - yr) * sinr);
 		tempy = yr + (((*p).x[i] - xr) * sinr) + (((*p).y[i] - yr) * cosr);
 		(*p).x[i] = round(tempx);
@@ -1174,8 +1207,7 @@ void rotatePolylineWithoutDelete(PolyLine* p, int xr, int yr, double degrees) {
 }
 
 void drawRotateWindmills() {
-	int i=0;
-	for(i=0; i<windmills.PolyCount; i+=2) {
+	for (int i = 0; i < windmills.PolyCount; i += 2) {
 		deletePolyline(&(windmills.arr[i+1]));
 		
 		drawPolylineOutline(&(windmills.arr[i]));
@@ -1196,8 +1228,7 @@ void movePolylineNoDelete(PolyLine* p, int dx, int dy) {
 	(*p).xp = tempx;
 	(*p).yp = tempy;
 
-	int i;
-	for(i=0; i<(*p).PointCount; i++) {
+	for (int i = 0; i < (*p).PointCount; ++i) {
 		tempx = (*p).x[i] + dx;
 		tempy = (*p).y[i] + dy;
 		(*p).x[i] = tempx;
@@ -1216,8 +1247,7 @@ void scalePolylineNoDelete(PolyLine* p, int xa, int ya, float ratio) {
 	(*p).xp = round(tempx);
 	(*p).yp = round(tempy);
 
-	int i;
-	for(i=0; i<(*p).PointCount; i++) {
+	for (int i = 0; i < (*p).PointCount; ++i) {
 		tempx = xa + (((*p).x[i] - xa) * ratio);
 		tempy = ya + (((*p).y[i] - ya) * ratio);
 		(*p).x[i] = round(tempx);
@@ -1228,8 +1258,7 @@ void scalePolylineNoDelete(PolyLine* p, int xa, int ya, float ratio) {
 }
 
 void moveWindmills(int dx, int dy) {
-	int i;
-	for(i=0; i<windmills.PolyCount; i+=2) {
+	for (int i = 0; i < windmills.PolyCount; i += 2) {
 		deletePolyline(&(windmills.arr[i+1]));
 		drawPolylineOutline(&(windmills.arr[i]));
 		fillPolyline(&(windmills.arr[i]), rbasecolor,gbasecolor,bbasecolor,abasecolor);
@@ -1243,8 +1272,7 @@ void moveWindmills(int dx, int dy) {
 }
 
 void scaleWindmills(int xa, int ya, float ratio) {
-	int i;
-	for(i=0; i<windmills.PolyCount; i+=2) {
+	for(int i = 0; i < windmills.PolyCount; i += 2) {
 		deletePolyline(&(windmills.arr[i+1]));
 		drawPolylineOutline(&(windmills.arr[i]));
 		fillPolyline(&(windmills.arr[i]), rbasecolor,gbasecolor,bbasecolor,abasecolor);
