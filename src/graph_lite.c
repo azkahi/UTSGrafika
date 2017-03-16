@@ -52,26 +52,6 @@ void terminate() {
      close(fbfd);
 }
 
-/*char getKeyPress() {
-    char buf = 0;
-    struct termios old = {0};
-    struct termios new = {0};
-    if (tcgetattr(0, &old) < 0)
-            perror("tcsetattr()");
-    new = old;
-    new.c_lflag &= ~ICANON;
-    new.c_lflag &= ~ECHO;
-    new.c_cc[VMIN] = 1;
-    new.c_cc[VTIME] = 0;
-    if (tcsetattr(0, TCSANOW, &new) < 0)
-            perror("tcsetattr ICANON");
-    if (read(0, &buf, 1) < 0)
-            perror ("read()");
-    if (tcsetattr(0, TCSADRAIN, &old) < 0)
-            perror ("tcsetattr ~ICANON");
-    return (buf);
-}*/
-
 //KEYPRESS HANDLER==============================
 static struct termios old, news;
 
@@ -388,18 +368,32 @@ int drawLine(Line* l) {
 }
 
 // METODE PEWARNAAN UMUM------------------------------------------------------------------------------------ //
-void floodFill(int x,int y, int r,int g,int b,int a, int rb,int gb,int bb,int ab) {
+void floodFill(int x,int y, int r,int g,int b, int a, int rb, int gb, int bb, int ab, int rt, int gt, int bt, int at) {
 // rgba is the color of the fill, rbgbbbab is the color of the border
+	// if rt is -1 then there is no top layer e.g. if there is, then it's ok to overwrite
+	// rtgtbtat is the color of the top layer
 	if((!isOverflow(x,y)) ) {
 		if(!isPixelColor(x,y, r,g,b,a)) {
 			if(!isPixelColor(x,y, rb,gb,bb,ab)) {
+				if (rt != -1) { // If there is top layer to be considered
 
-				plotPixelRGBA(x,y, r,g,b,a);
-				floodFill(x+1,y, r,g,b,a, rb,gb,bb,ab);
-				floodFill(x-1,y, r,g,b,a, rb,gb,bb,ab);
-				floodFill(x,y+1, r,g,b,a, rb,gb,bb,ab);
-				floodFill(x,y-1, r,g,b,a, rb,gb,bb,ab);
 
+
+					if(!isPixelColor(x,y, rt, gt, bt, at)){
+
+						plotPixelRGBA(x,y, r,g,b,a);
+						floodFill(x+1,y, r,g,b,a, rb,gb,bb,ab, rt,gt,bt,at);
+						floodFill(x-1,y, r,g,b,a, rb,gb,bb,ab, rt,gt,bt,at);
+						floodFill(x,y+1, r,g,b,a, rb,gb,bb,ab, rt,gt,bt,at);
+						floodFill(x,y-1, r,g,b,a, rb,gb,bb,ab, rt,gt,bt,at);
+					}
+				} else {
+					plotPixelRGBA(x,y, r,g,b,a);
+					floodFill(x+1,y, r,g,b,a, rb,gb,bb,ab, rt,gt,bt,at);
+					floodFill(x-1,y, r,g,b,a, rb,gb,bb,ab, rt,gt,bt,at);
+					floodFill(x,y+1, r,g,b,a, rb,gb,bb,ab, rt,gt,bt,at);
+					floodFill(x,y-1, r,g,b,a, rb,gb,bb,ab, rt,gt,bt,at);
+				}
 			}
 		}
 	}
@@ -462,8 +456,8 @@ int drawPolylineOutline(PolyLine* p) {
 	return col;
 }
 
-void fillPolyline(PolyLine* p, int rx, int gx, int bx, int ax) {
-	floodFill((*p).xp,(*p).yp, rx,gx,bx,ax, ((*p).r),((*p).g),((*p).b),((*p).a));
+void fillPolyline(PolyLine* p, int rx, int gx, int bx, int ax, int rt, int gt, int bt, int at) {
+	floodFill((*p).x[2] + 5,(*p).y[2] + 5, rx,gx,bx,ax, ((*p).r),((*p).g),((*p).b),((*p).a), rt, gt, bt, at);
 }
 
 void drawScreenBorder() {
@@ -480,7 +474,7 @@ void drawScreenBorder() {
 // METODE ANIMASI POLYLINE---------------------------------------------------------------------------------- //
 void deletePolyline(PolyLine* p) {
 
-	fillPolyline(p, rground,gground,bground,aground);
+	fillPolyline(p, rground,gground,bground,aground, -1, 0, 0, 0);
 	int r = (*p).r;
 	int g = (*p).g;
 	int b = (*p).b;
@@ -613,9 +607,9 @@ void scalePolylineArray(PolyLineArray* parr, int ax, int ay, float scale) {
 	}
 }
 
-void colorPolylineArray(PolyLineArray* parr, int r, int g, int b, int a) {
+void colorPolylineArray(PolyLineArray* parr, int r, int g, int b, int a, int rt, int gt, int bt, int at) {
 	for(int i = 0; i < (*parr).PolyCount; ++i) {
-		fillPolyline(&((*parr).arr[i]), r,g,b,a);
+		fillPolyline(&((*parr).arr[i]), r,g,b,a, rt,gt,bt,at);
 	}
 }
 
@@ -1153,10 +1147,10 @@ int rbladecolor=0, gbladecolor=126, bbladecolor=0, abladecolor=0;
 void addWindmill(int x, int y, float scale) {
 	PolyLine base;
 	initPolyline(&base, rbase,gbase,bbase,abase);
-	addEndPoint(&base, x+(50*scale), y+(50*scale));
-	addEndPoint(&base, x+(50*scale), y-(50*scale));
-	addEndPoint(&base, x-(50*scale), y-(50*scale));
-	addEndPoint(&base, x-(50*scale), y+(50*scale));
+	addEndPoint(&base, x+(125*scale), y+(125*scale));
+	addEndPoint(&base, x+(125*scale), y-(125*scale));
+	addEndPoint(&base, x-(125*scale), y-(125*scale));
+	addEndPoint(&base, x-(125*scale), y+(125*scale));
     setFirePoint(&base, x, y);
 	addPolyline(&windmills,&base);
 	
@@ -1207,11 +1201,11 @@ void drawRotateWindmills() {
 	for (int i = 0; i < windmills.PolyCount; i += 2) {
 		deletePolyline(&(windmills.arr[i+1]));
 		
-		drawPolylineOutline(&(windmills.arr[i]));
-		fillPolyline(&(windmills.arr[i]), rbasecolor,gbasecolor,bbasecolor,abasecolor);
-		
 		rotatePolylineWithoutDelete(&(windmills.arr[i+1]), windmills.arr[i+1].xp, windmills.arr[i+1].yp, -15);
-		fillPolyline(&(windmills.arr[i+1]), rbladecolor,gbladecolor,bbladecolor,abladecolor);
+		fillPolyline(&(windmills.arr[i+1]), rbladecolor,gbladecolor,bbladecolor,abladecolor, -1,0,0,0);
+
+		drawPolylineOutline(&(windmills.arr[i]));
+		fillPolyline(&(windmills.arr[i]), rbasecolor,gbasecolor,bbasecolor,abasecolor, rbladecolor,gbladecolor,bbladecolor,abladecolor);
 	}
 }
 
@@ -1258,13 +1252,16 @@ void moveWindmills(int dx, int dy) {
 	for (int i = 0; i < windmills.PolyCount; i += 2) {
 		deletePolyline(&(windmills.arr[i+1]));
 		drawPolylineOutline(&(windmills.arr[i]));
-		fillPolyline(&(windmills.arr[i]), rbasecolor,gbasecolor,bbasecolor,abasecolor);
+		fillPolyline(&(windmills.arr[i]), rbasecolor,gbasecolor,bbasecolor,abasecolor,-1,0,0,0);
 		deletePolyline(&(windmills.arr[i]));
 		
-		movePolylineNoDelete(&(windmills.arr[i]), dx,dy);
-		fillPolyline(&(windmills.arr[i]), rbasecolor,gbasecolor,bbasecolor,abasecolor);
 		movePolylineNoDelete(&(windmills.arr[i+1]), dx,dy);
-		fillPolyline(&(windmills.arr[i+1]), rbladecolor,gbladecolor,bbladecolor,abladecolor);
+		fillPolyline(&(windmills.arr[i+1]), rbladecolor,gbladecolor,bbladecolor,abladecolor,-1,0,0,0);
+
+		usleep(1000000);
+
+		movePolylineNoDelete(&(windmills.arr[i]), dx,dy);
+		fillPolyline(&(windmills.arr[i]), rbasecolor,gbasecolor,bbasecolor,abasecolor, rbladecolor,gbladecolor,bbladecolor,abladecolor);
 	}
 }
 
@@ -1272,13 +1269,14 @@ void scaleWindmills(int xa, int ya, float ratio) {
 	for(int i = 0; i < windmills.PolyCount; i += 2) {
 		deletePolyline(&(windmills.arr[i+1]));
 		drawPolylineOutline(&(windmills.arr[i]));
-		fillPolyline(&(windmills.arr[i]), rbasecolor,gbasecolor,bbasecolor,abasecolor);
+		fillPolyline(&(windmills.arr[i]), rbasecolor,gbasecolor,bbasecolor,abasecolor, -1,0,0,0);
 		deletePolyline(&(windmills.arr[i]));
 		
-		scalePolylineNoDelete(&(windmills.arr[i]), xa,ya, ratio);
-		fillPolyline(&(windmills.arr[i]), rbasecolor,gbasecolor,bbasecolor,abasecolor);
+
 		scalePolylineNoDelete(&(windmills.arr[i+1]), xa,ya, ratio);
-		fillPolyline(&(windmills.arr[i+1]), rbladecolor,gbladecolor,bbladecolor,abladecolor);
+		fillPolyline(&(windmills.arr[i+1]), rbladecolor,gbladecolor,bbladecolor,abladecolor, -1,0,0,0);
+		scalePolylineNoDelete(&(windmills.arr[i]), xa,ya, ratio);
+		fillPolyline(&(windmills.arr[i]), rbasecolor,gbasecolor,bbasecolor,abasecolor, rbladecolor,gbladecolor,bbladecolor,abladecolor);
 	}
 }
 
@@ -1469,7 +1467,6 @@ void processPlayerInput() {
 		
 		counter--;
 		if((counter%5)==0) {
-			drawRotateWindmills();
 		}
 
 		if (counter == 0){
