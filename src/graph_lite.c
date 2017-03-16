@@ -1258,8 +1258,6 @@ void moveWindmills(int dx, int dy) {
 		movePolylineNoDelete(&(windmills.arr[i+1]), dx,dy);
 		fillPolyline(&(windmills.arr[i+1]), rbladecolor,gbladecolor,bbladecolor,abladecolor,-1,0,0,0);
 
-		usleep(1000000);
-
 		movePolylineNoDelete(&(windmills.arr[i]), dx,dy);
 		fillPolyline(&(windmills.arr[i]), rbasecolor,gbasecolor,bbasecolor,abasecolor, rbladecolor,gbladecolor,bbladecolor,abladecolor);
 	}
@@ -1467,6 +1465,7 @@ void processPlayerInput() {
 		
 		counter--;
 		if((counter%5)==0) {
+			drawRotateWindmills();
 		}
 
 		if (counter == 0){
